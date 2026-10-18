@@ -1,0 +1,14 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+© 2026 ArchEnergy s.r.o.
+
+EnergySketch je upravená verze IngeTrazo (GNU GPL v3 nebo novější).
+Původní projekt: https://github.com/ingelibre/ingetrazo
+Původní autor: Marco Sumari Tellez a přispěvatelé uvedení v AUTHORS.
+Původní autorské hlavičky a licence jsou zachovány.
+
+Úpravy ArchEnergy zahájeny 18. 10. 2026; veřejný zdrojový snímek 19. 10. 2026.
+Zahrnují plugin ArchControl, české rozhraní a AI instrukce, vlastní branding,
+výchozí vzhled, doplnění řezu, integraci kapátka a obnovu reportů při navigaci.
+Podrobnosti a omezení: ARCHENERGY.md. Původ zdrojů: UPSTREAM.md.
+Licence převzatých částí a knihoven zůstávají podle jejich původních podmínek;
+plugin obsahuje samostatné oznámení a licenci algoritmu Ruby qs6.

@@ -1,0 +1,23 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+© 2026 ArchEnergy s.r.o.
+
+ArchControl: převod vlastního Ruby pluginu do Pythonu pro EnergySketch.
+Výpočty, indexy řádků, parser a hodnoty un_values.json vycházejí z
+vlastního původního Ruby pluginu ArchEnergy.
+JSON kvůli zachování strojového formátu nemá komentářovou hlavičku;
+autorství a licence jeho kopie jsou uvedeny zde.
+
+Ikony lišty ArchControl jsou nové vlastní kresby v icons.py, GPL-3.0-or-later.
+Používají styl, barvu inkoustu a zvýraznění hostitele views.icons; reagují
+na motiv a barvu zvýraznění i v otevřeném okně. Původní nástrojové ikony
+IngeTrazo se nemění. Rastrové ikony starého Ruby pluginu se již nepoužívají.
+
+Adaptér používá původní IngeTrazo API a jeho pomocné funkce, jejich autoři
+a GPL licence jsou zachováni v původních souborech. OpenSKP zůstává
+samostatnou závislostí pod původní MIT licencí, nebyl zde změněn.
+
+Pořadí shodných klíčů CSV: vlastní Python vyjádření algoritmu qs6 použitého
+v Ruby 2.2.4 (util.c), Tomoyuki Kawamura (1995), Yukihiro Matsumoto a Ruby
+contributors. Původní BSD-2-Clause podmínky a copyright jsou přibalené jako
+RUBY_SORT_LICENSE.txt. Zdroj: https://github.com/ruby/ruby/tree/v2_2_4 .
+Úpravy a integrace © 2026 ArchEnergy s.r.o., GPL-3.0-or-later.

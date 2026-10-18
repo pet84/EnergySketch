@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# -*- coding: utf-8 -*-
+# © 2026 ArchEnergy s.r.o.
+VSVersionInfo(
+  ffi=FixedFileInfo(filevers=(0, 1, 0, 0), prodvers=(0, 1, 0, 0),
+    mask=0x3f, flags=0x2, OS=0x40004, fileType=0x1, subtype=0x0, date=(0, 0)),
+  kids=[StringFileInfo([StringTable('040904b0', [
+    StringStruct('CompanyName', 'ArchEnergy s.r.o.'),
+    StringStruct('FileDescription', 'EnergySketch — most MCP; upravená verze IngeTrazo'),
+    StringStruct('FileVersion', '0.1.0.0 interní vývojová verze'),
+    StringStruct('InternalName', 'EnergySketch-mcp'),
+    StringStruct('LegalCopyright', '© Marco Sumari Tellez a přispěvatelé IngeTrazo; úpravy © 2026 ArchEnergy s.r.o.; GPL-3.0-or-later'),
+    StringStruct('OriginalFilename', 'EnergySketch-mcp.exe'),
+    StringStruct('ProductName', 'EnergySketch · ArchEnergy s.r.o.'),
+    StringStruct('ProductVersion', '0.1 interní; základ IngeTrazo 0.5.8')
+  ])]), VarFileInfo([VarStruct('Translation', [1033, 1200])])]
+)

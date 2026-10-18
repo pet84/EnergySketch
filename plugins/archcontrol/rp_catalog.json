@@ -1,0 +1,203 @@
+{
+  "_license": "GPL-3.0-or-later",
+  "_copyright": "© 2026 ArchEnergy s.r.o.",
+  "types": {
+    "SO": [
+      "steny",
+      "Stěna vnější"
+    ],
+    "SNN": [
+      "steny",
+      "Stěna k nevytápěnému podstřešnímu prostoru (se střechou bez tepelné izolace)"
+    ],
+    "SN": [
+      "steny",
+      "Stěna vnitřní z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "SNG": [
+      "steny",
+      "Stěna vnitřní z vytápěného k nevytápěnému prostoru převážně v kontaktu s exteriérem a zeminou"
+    ],
+    "SNM": [
+      "steny",
+      "Stěna vnitřní z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "SNT": [
+      "steny",
+      "Stěna vnitřní z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "SNT5": [
+      "steny",
+      "Stěna vnitřní z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "PDL": [
+      "podlahy",
+      "Podlaha vytápěného prostoru přilehlá k zemině"
+    ],
+    "PDLE": [
+      "podlahy",
+      "Strop z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "STRV": [
+      "podlahy",
+      "Strop s podlahou venkovním prostorem"
+    ],
+    "SCH": [
+      "strechy",
+      "Střecha plochá"
+    ],
+    "SCHS": [
+      "strechy",
+      "Střecha strmá se sklonem nad 60°"
+    ],
+    "STR": [
+      "strechy",
+      "Strop pod nevytápěným podstřešním prostorem (se střechou bez tepelné izolace)"
+    ],
+    "STRT": [
+      "strechy",
+      "Strop z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "STR5": [
+      "strechy",
+      "Strop z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "OD": [
+      "otvoroveVyplne",
+      "Výplň otvoru z vytápěného prostoru do venkovního prostředí kromě dveří"
+    ],
+    "OS": [
+      "otvoroveVyplne",
+      "Výplň otvoru z vytápěného prostoru do venkovního prostředí kromě dveří"
+    ],
+    "DO": [
+      "otvoroveVyplne",
+      "Dveřní výplň otvoru z vytápěného prostoru do venkovního prostředí (včetně rámu)"
+    ],
+    "DN": [
+      "otvoroveVyplne",
+      "Výplň otvoru z vytápěného do nevytápěného prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "ODN": [
+      "otvoroveVyplne",
+      "Výplň otvoru z vytápěného do nevytápěného prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "ODZ": [
+      "otvoroveVyplne",
+      "Výplň otvoru z vytápěného do nevytápěného prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ]
+  },
+  "prefixes": [
+    [
+      "STRSV_",
+      "strechy",
+      "Střecha strmá se sklonem nad 60°"
+    ],
+    [
+      "STRPS_",
+      "strechy",
+      "Strop pod nevytápěným podstřešním prostorem (se střechou bez tepelné izolace)"
+    ],
+    [
+      "STRNV_",
+      "strechy",
+      "Strop z vytápěného k nevytápěnému prostoru převážně v kontaktu s exteriérem a zeminou"
+    ],
+    [
+      "STRP_",
+      "strechy",
+      "Střecha plochá"
+    ],
+    [
+      "STRS_",
+      "strechy",
+      "Střecha šikmá se sklonem do 60° včetně"
+    ],
+    [
+      "PDLZ_",
+      "podlahy",
+      "Podlaha vytápěného prostoru přilehlá k zemině"
+    ],
+    [
+      "PDLV_",
+      "podlahy",
+      "Strop s podlahou venkovním prostorem"
+    ],
+    [
+      "PDLN_",
+      "podlahy",
+      "Strop z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    [
+      "SOZ_",
+      "steny",
+      "Stěna vytápěného prostoru přilehlá k zemině"
+    ],
+    [
+      "SOP_",
+      "steny",
+      "Stěna k nevytápěnému podstřešnímu prostoru (se střechou bez tepelné izolace)"
+    ],
+    [
+      "SVN_",
+      "steny",
+      "Stěna vnitřní z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    [
+      "SVE_",
+      "steny",
+      "Stěna vnitřní z vytápěného k nevytápěnému prostoru převážně v kontaktu s exteriérem a zeminou"
+    ],
+    [
+      "SO_",
+      "steny",
+      "Stěna vnější"
+    ],
+    [
+      "OKN_",
+      "otvoroveVyplne",
+      "Výplň otvoru z vytápěného do nevytápěného prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    [
+      "ODN_",
+      "otvoroveVyplne",
+      "Dveřní výplň otvoru z vytápěného prostoru do venkovního prostředí (včetně rámu)"
+    ],
+    [
+      "OK_",
+      "otvoroveVyplne",
+      "Výplň otvoru z vytápěného prostoru do venkovního prostředí kromě dveří"
+    ],
+    [
+      "OD_",
+      "otvoroveVyplne",
+      "Dveřní výplň otvoru z vytápěného prostoru do venkovního prostředí (včetně rámu)"
+    ]
+  ],
+  "categories": {
+    "steny": [
+      "Stěna vnější",
+      "Stěna k nevytápěnému podstřešnímu prostoru (se střechou bez tepelné izolace)",
+      "Stěna vytápěného prostoru přilehlá k zemině",
+      "Stěna vnitřní z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory",
+      "Stěna vnitřní z vytápěného k nevytápěnému prostoru převážně v kontaktu s exteriérem a zeminou"
+    ],
+    "podlahy": [
+      "Strop s podlahou venkovním prostorem",
+      "Podlaha vytápěného prostoru přilehlá k zemině",
+      "Strop z vytápěného k nevytápěnému prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ],
+    "strechy": [
+      "Střecha strmá se sklonem nad 60°",
+      "Střecha šikmá se sklonem do 60° včetně",
+      "Střecha plochá",
+      "Strop pod nevytápěným podstřešním prostorem (se střechou bez tepelné izolace)",
+      "Strop z vytápěného k nevytápěnému prostoru převážně v kontaktu s exteriérem a zeminou"
+    ],
+    "otvoroveVyplne": [
+      "Výplň otvoru z vytápěného prostoru do venkovního prostředí kromě dveří",
+      "Dveřní výplň otvoru z vytápěného prostoru do venkovního prostředí (včetně rámu)",
+      "Výplň otvoru z vytápěného do nevytápěného prostoru převážně v kontaktu s dalšími vytápěnými prostory"
+    ]
+  }
+}

@@ -1,0 +1,363 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Marco Sumari Tellez and IngeTrazo contributors.
+# Modifications © 2026 ArchEnergy s.r.o.
+"""Help ▸ About IngeTrazo, with the contributors rolling like film credits.
+
+The list of people whose work is IN the program keeps growing — a
+draftsman's reports, a reviewer's drafting norms, a translation, the Mac
+package, a whole tool — and a static paragraph of names would soon push
+the dialog off the screen. So they roll up slowly in a band a few lines
+tall, like the credits at the end of a film, round and round: nothing to
+click, several people in view at once (Marco, 23-09 — a one-at-a-time
+carousel paused under the mouse and read as needing clicks). AUTHORS
+says what each one gave, in full.
+"""
+from __future__ import annotations
+
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QLabel,
+    QVBoxLayout,
+    QWidget,
+)
+
+from core.i18n import tr
+
+#: (name, what they gave — English source for tr(), link or "").
+CONTRIBUTORS = [
+    ("Pedro Caeiro",
+     "Draftsman. Pull requests and dozens of issue reports from daily "
+     "drafting work: much of how IngeTrazo draws today.",
+     "https://github.com/pacaeiro"),
+    ("Rafael García Rodríguez",
+     "Draftsman and 3D reviewer. Filmed reviews of the whole program and "
+     "the drafting standards for dimensions.",
+     "https://youtube.com/@Rafa3D"),
+    ("Ahsan Mehmood",
+     "Author of OpenSKP, the free reader behind the .skp import; "
+     "his plugin work became the Extensions system.",
+     "https://github.com/iamahsanmehmood"),
+    ("dafrobozao",
+     "Brazilian Portuguese translation of the interface.",
+     "https://github.com/dafrobozao"),
+    ("Félix Riestra",
+     "The macOS package: IngeTrazo for Mac. Components that come apart "
+     "(parts, cut list, exploded view) and the Extension API 2.",
+     "https://github.com/felixriestra"),
+    ("Gabriel Rodríguez Arregin",
+     "Architect. Quick editing tools for everyday drafting.",
+     "https://github.com/canalsecuario-blip"),
+    ("José Castro Basso (FADU–UDELAR)",
+     "Architect and teacher of architectural representation. Two-point "
+     "perspective, the current view as DXF, and the Levels extension.",
+     "https://github.com/castrobasso"),
+    ("Sherod Taylor",
+     "The First Person tool: walk the model like a game.",
+     "https://github.com/sherodtaylor"),
+    ("liuandy",
+     "Simplified Chinese translation of the interface.",
+     "https://github.com/liujvnes"),
+    ("deedend",
+     "Italian translation of the interface.",
+     "https://github.com/deedend"),
+    ("Rainjalin",
+     "Indonesian translation of the interface.",
+     "https://github.com/Rainjalin"),
+    ("Bane Andreev",
+     "Architect. The Windowizer example extension: parametric windows from "
+     "faces, and the extension API's menus and group data.",
+     ""),
+    ("Rony Leonel Janampa Monago",
+     "The Polygon properties example extension: area, centroid and "
+     "second moments of a face.",
+     "https://github.com/Ronyleonel6"),
+    ("Carlos Martins",
+     "Bug reports with videos that pinned down guides, group paint and "
+     "exploded groups; the Project Structure plugin behind the Outliner.",
+     "https://github.com/fafecm"),
+    ("mnavarromugas",
+     "First to test the 3D mouse on a real SpaceMouse; per-axis inversion.",
+     "https://github.com/mnavarromugas"),
+    ("xyont",
+     "Reports from mechanical modelling: pulling against a wall, units "
+     "for new files.",
+     "https://github.com/xyont"),
+    ("Roy Méndez Castro",
+     "Wrote down the Outliner: what a tree of nested groups needs.",
+     "https://github.com/roymendezcastro"),
+    ("kagehak",
+     "STL import and Simplify Mesh.",
+     "https://github.com/kagehak"),
+]
+
+#: Roll speed: pixels per tick, and the tick.
+ROLL_PX = 1
+ROLL_MS = 45
+
+
+def _credits_html(people) -> str:
+    rows = []
+    for name, role, link in people:
+        who = (f"<a href='{link}'><b>{name}</b></a>" if link
+               else f"<b>{name}</b>")
+        rows.append(f"<p style='margin:0 0 10px 0'>{who}<br>{tr(role)}</p>")
+    return "".join(rows)
+
+
+class _Fade(QWidget):
+    """Soft top and bottom edges over the roll, in the window's colour."""
+
+    def __init__(self, parent) -> None:
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)
+
+    def paintEvent(self, event) -> None:  # noqa: N802
+        from PySide6.QtGui import QColor, QLinearGradient, QPainter
+        bg = self.palette().window().color()
+        clear = QColor(bg)
+        clear.setAlpha(0)
+        p = QPainter(self)
+        edge = min(22, self.height() // 4)
+        for y0, y1, a, b in ((0, edge, bg, clear),
+                             (self.height() - edge, self.height(), clear, bg)):
+            g = QLinearGradient(0, y0, 0, y1)
+            g.setColorAt(0.0, a)
+            g.setColorAt(1.0, b)
+            p.fillRect(0, y0, self.width(), y1 - y0, g)
+        p.end()
+
+
+class _Credits(QWidget):
+    """Every contributor, rolling up slowly and looping, like film credits.
+    Two copies of the list sit one above the other; when the first has
+    rolled out of view the roll starts over, seamlessly. The pointer over
+    it stops the roll and the wheel scrolls it by hand, both ways (Marco:
+    «me gustaría poder scrollear para saber qué usuarios hay apoyando»);
+    it rolls on again when the pointer leaves."""
+
+    LINES = 11
+
+    def __init__(self, people, parent=None) -> None:
+        super().__init__(parent)
+        self._people = list(people)
+        html = _credits_html(self._people)
+        self._copies = []
+        for _ in range(2):
+            lab = QLabel(html, self)
+            lab.setWordWrap(True)
+            lab.setTextFormat(Qt.RichText)
+            lab.setOpenExternalLinks(True)
+            lab.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+            self._copies.append(lab)
+        self._fade = _Fade(self)
+        self.setFixedHeight(self.fontMetrics().lineSpacing() * self.LINES + 8)
+        self._offset = 0.0
+        self._span = 1
+        self._timer = QTimer(self)
+        self._timer.setInterval(ROLL_MS)
+        self._timer.timeout.connect(self.tick)
+        self._timer.start()
+
+    @property
+    def running(self) -> bool:
+        return self._timer.isActive()
+
+    @property
+    def offset(self) -> float:
+        return self._offset
+
+    @property
+    def span(self) -> int:
+        return self._span
+
+    def resizeEvent(self, event) -> None:  # noqa: N802
+        super().resizeEvent(event)
+        w = self.width()
+        self._span = max(1, self._copies[0].heightForWidth(w))
+        for lab in self._copies:
+            lab.resize(w, self._span)
+        self._fade.setGeometry(0, 0, w, self.height())
+        self._place()
+
+    def tick(self) -> None:
+        self._offset = (self._offset + ROLL_PX) % self._span
+        self._place()
+
+    def scroll_by(self, pixels: float) -> None:
+        """Move the roll by hand (positive = on down the list), looping."""
+        self._offset = (self._offset + pixels) % self._span
+        self._place()
+
+    def wheelEvent(self, event) -> None:  # noqa: N802
+        self._timer.stop()
+        steps = event.angleDelta().y() / 120.0
+        self.scroll_by(-steps * self.fontMetrics().lineSpacing() * 3)
+        event.accept()
+
+    def enterEvent(self, event) -> None:  # noqa: N802
+        self._timer.stop()                  # read a name without it moving
+        super().enterEvent(event)
+
+    def leaveEvent(self, event) -> None:  # noqa: N802
+        self._timer.start()
+        super().leaveEvent(event)
+
+    def _place(self) -> None:
+        y = -int(self._offset)
+        self._copies[0].move(0, y)
+        self._copies[1].move(0, y + self._span)
+        self._fade.raise_()
+
+
+def system_info(version: str, gl_line: str = "") -> str:
+    """The lines a bug report needs (#476), as plain text to paste in an
+    issue: program, system, Python, Qt, OpenGL, screen and language.
+
+    Always in English, whatever the interface language, so whoever reads
+    the report can read it too. Nothing personal: no user name, no paths."""
+    import platform
+
+    import PySide6
+    from PySide6.QtCore import qVersion
+    from PySide6.QtWidgets import QApplication
+
+    from core.i18n import current_language
+
+    lines = [f"EnergySketch {version} · ArchEnergy s.r.o. ({_build()})",
+             "Based on IngeTrazo · © Marco Sumari Tellez and IngeTrazo contributors · GPL-3.0-or-later",
+             f"OS: {_os_name()} ({platform.machine()})",
+             f"Python: {platform.python_version()}",
+             f"Qt: {qVersion()}, PySide6: {PySide6.__version__}"]
+    if gl_line:
+        lines.append(f"OpenGL: {gl_line}")
+    app = QApplication.instance()
+    screen = app.primaryScreen() if app is not None else None
+    if screen is not None:
+        size = screen.size()
+        lines.append(f"Screen: {size.width()}x{size.height()} "
+                     f"@ {screen.devicePixelRatio():g}x")
+    lines.append(f"Language: {current_language()}")
+    return "\n".join(lines)
+
+
+def _build() -> str:
+    """How this copy runs: a Flatpak or an AppImage say so — a Flatpak is
+    not frozen, and read «from source» in reports."""
+    import os
+    import sys
+    if os.environ.get("FLATPAK_ID"):
+        return "Flatpak"
+    if os.environ.get("APPIMAGE"):
+        return "AppImage"
+    return "packaged" if getattr(sys, "frozen", False) else "from source"
+
+
+def _os_name() -> str:
+    """The system, in words no locale translates. ``platform.platform()``
+    asks ``uname -p``, which answers in the user's language: a Spanish
+    Linux reported «…-x86_64-desconocido-with-glibc2.43»."""
+    import platform
+    system = platform.system()
+    if system == "Darwin":
+        return f"macOS {platform.mac_ver()[0]}"
+    if system == "Windows":
+        return f"Windows {platform.release()} ({platform.version()})"
+    name = f"{system} {platform.release()}"
+    try:
+        pretty = platform.freedesktop_os_release().get("PRETTY_NAME")
+    except OSError:
+        pretty = None
+    return f"{name}, {pretty}" if pretty else name
+
+
+class AboutDialog(QDialog):
+    def __init__(self, parent, version: str, gl_line: str = "") -> None:
+        super().__init__(parent)
+        self.setWindowTitle("EnergySketch · ArchEnergy s.r.o. — " + tr("About IngeTrazo"))
+        self.setMinimumWidth(480)
+        outer = QHBoxLayout(self)
+        outer.setContentsMargins(18, 18, 18, 14)
+        outer.setSpacing(16)
+        from PySide6.QtWidgets import QApplication
+        icon = QApplication.windowIcon()
+        if not icon.isNull():
+            pic = QLabel(self)
+            pic.setPixmap(icon.pixmap(64, 64))
+            pic.setAlignment(Qt.AlignTop)
+            outer.addWidget(pic, 0, Qt.AlignTop)
+        col = QVBoxLayout()
+        col.setSpacing(4)
+        outer.addLayout(col, 1)
+
+        # Supplied EnergySketch wordmark; credits and the GPL notice below
+        # remain visible. Use the white variant against a dark palette.
+        from core.paths import app_root
+        from PySide6.QtGui import QPainter, QPixmap
+        from PySide6.QtSvg import QSvgRenderer
+        dark = self.palette().window().color().lightness() < 128
+        name = "energysketch-logo-dark.svg" if dark else "energysketch-logo.svg"
+        renderer = QSvgRenderer(str(app_root() / "resources/icons" / name))
+        if renderer.isValid():
+            box = renderer.viewBoxF()
+            image = QPixmap(280, max(1, round(280 * box.height() / box.width())))
+            image.fill(Qt.transparent)
+            painter = QPainter(image)
+            renderer.render(painter)
+            painter.end()
+            logo = QLabel(self)
+            logo.setObjectName("energysketch-brand-logo")
+            logo.setPixmap(image)
+            logo.setContentsMargins(0, 0, 0, 8)
+            col.addWidget(logo, 0, Qt.AlignLeft)
+
+        def para(html: str) -> QLabel:
+            lab = QLabel(html, self)
+            lab.setWordWrap(True)
+            lab.setTextFormat(Qt.RichText)
+            lab.setOpenExternalLinks(True)
+            col.addWidget(lab)
+            return lab
+
+        # The top is one compact block, so the credits below get the room
+        # (Marco, 23-09).
+        gl = f"<br><small>OpenGL: {gl_line}</small>" if gl_line else ""
+        from core._native import engine
+        # Which engine computes the heavy parts (Rust when the experimental
+        # native engine is on and loads) — the first thing a report needs.
+        gl += f"<br><small>{tr('Engine')}: {engine()}</small>"
+        para("<b style='font-size:15px'>EnergySketch · ArchEnergy s.r.o.</b> "
+             f"{tr('Version')} {version}{gl}<br>"
+             f"{tr('Free 3D modeler for architecture, engineering and 3D design.')}<br>"
+             f"{tr('Created by')} <b>Marco Sumari Tellez</b> — "
+             f"{tr('Civil Engineer — Arequipa, Peru')}")
+        from core.archenergy import NOTICE
+        para(f"<small>{NOTICE}</small>")
+        head = para(f"<b>{tr('With contributions from')}</b>")
+        head.setContentsMargins(0, 8, 0, 0)
+        self.credits = _Credits(CONTRIBUTORS, self)
+        col.addWidget(self.credits)
+        para(f"<small>{tr('And thanks to everyone who tries IngeTrazo and reports what they find.')}</small>")
+        para(f"<small>{tr('Licensed under GPL-3.0-or-later.')} · "
+             "<a href='https://github.com/ingelibre/ingetrazo'>"
+             "github.com/ingelibre/ingetrazo</a></small>")
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok, self)
+        buttons.accepted.connect(self.accept)
+        # What to paste in a bug report, one click away (#476).
+        self._info = system_info(version, gl_line)
+        self.copy_button = buttons.addButton(
+            tr("Copy to clipboard"), QDialogButtonBox.ActionRole)
+        self.copy_button.setToolTip(self._info)
+        self.copy_button.clicked.connect(self.copy_info)
+        col.addWidget(buttons)
+
+    def copy_info(self) -> None:
+        from PySide6.QtWidgets import QApplication
+        QApplication.clipboard().setText(self._info)
+        self.copy_button.setText(tr("Copied"))
+        # Tied to the button: closing the dialog first cancels the reset.
+        QTimer.singleShot(
+            1500, self.copy_button,
+            lambda: self.copy_button.setText(tr("Copy to clipboard")))

@@ -1,0 +1,654 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Marco Sumari Tellez and IngeTrazo contributors.
+"""Select tool: pick edges and faces and delete them.
+
+Behavior:
+- Left click on / near an edge: select that edge. Click on a face interior
+  (when no edge is closer): select the face. Edges win ties because they sit
+  on top of faces, the usual convention.
+- Modifiers, the classic ones: Shift-click TOGGLES what it picks (click an
+  already-selected line or face to drop it out of the selection — the way you
+  carve a wall out of a box selection), Ctrl-click adds, Shift+Ctrl-click
+  removes, and a plain click replaces the whole selection. The rubber-band box
+  reads the same modifiers.
+- Left click on empty space: clear the selection.
+- Hover highlights whatever the click would pick, so the user sees the target
+  before committing.
+- Delete / Backspace: remove the selected edges and faces from the scene.
+"""
+from __future__ import annotations
+
+from views import prompts as _prompts
+
+from PySide6.QtCore import Qt
+
+from core.dimension import Dimension
+from core.textlabel import TextLabel
+from core.group import Group
+from core.mesh import Edge, Face
+from core.guide import Guide
+from core.section import SectionPlane
+from core.history import (
+    CompoundCommand,
+    DeleteDimensionsCommand,
+    DeleteGeoPathsCommand,
+    DeleteGroupCommand,
+    DeleteGuidesCommand,
+    DeleteSectionPlanesCommand,
+    DeleteTextLabelsCommand,
+    SetActiveSectionCommand,
+    EditTextLabelCommand,
+    EraseSelectionCommand,
+)
+from georef.geopath import GeoPath
+from tools.base import Tool, ToolContext
+
+
+
+def selection_mode(modifiers) -> str:
+    """How a click (or a rubber-band box) joins the current selection, from
+    the keyboard modifiers — the classic rules: Shift toggles, Ctrl adds,
+    Shift+Ctrl removes, nothing replaces."""
+    shift = bool(modifiers & Qt.ShiftModifier)
+    ctrl = bool(modifiers & Qt.ControlModifier)
+    if shift and ctrl:
+        return "remove"
+    if ctrl:
+        return "add"
+    return "toggle" if shift else "replace"
+
+
+def _seg_rect_mask(ax, ay, bx, by, ok, rect, crossing):
+    """Vectorized rect test for N screen segments: window mode = both
+    endpoints inside; crossing mode = an endpoint inside or the segment
+    intersecting one of the four borders. NumPy twin of _pt_in_rect /
+    _seg_rect_overlap for import-scale meshes."""
+    import numpy as np
+    x0, y0, x1, y1 = rect
+    in_a = ok & (ax >= x0) & (ax <= x1) & (ay >= y0) & (ay <= y1)
+    in_b = ok & (bx >= x0) & (bx <= x1) & (by >= y0) & (by <= y1)
+    if not crossing:
+        return in_a & in_b
+    cross = in_a | in_b
+    todo = ok & ~cross
+    if todo.any():
+        for px, py, qx, qy in ((x0, y0, x1, y0), (x1, y0, x1, y1),
+                               (x1, y1, x0, y1), (x0, y1, x0, y0)):
+            d1 = (qx - px) * (ay - py) - (qy - py) * (ax - px)
+            d2 = (qx - px) * (by - py) - (qy - py) * (bx - px)
+            d3 = (bx - ax) * (py - ay) - (by - ay) * (px - ax)
+            d4 = (bx - ax) * (qy - ay) - (by - ay) * (qx - ax)
+            hit = todo & (d1 * d2 < 0) & (d3 * d4 < 0)
+            cross |= hit
+            todo &= ~hit
+            if not todo.any():
+                break
+    return cross
+
+
+def _box_loose_fast(viewport, rect, crossing):
+    """Vectorized box select over the loose mesh: edges via the cached
+    screen projection, faces derived from their boundary edges. Returns
+    (edges, faces) or None to fall back to the per-entity walk (stub
+    viewports in tests, or a viewport without the caches)."""
+    if (getattr(viewport, "_ledge_screen", None) is None
+            or getattr(viewport, "_pick_index", None) is None):
+        return None
+    try:
+        proj = viewport._ledge_screen()
+        idx = viewport._pick_index()
+    except Exception:  # noqa: BLE001 — any stub oddity: python path
+        return None
+    if proj is None or idx.edge_a is None:
+        return None
+    import numpy as np
+    ax, ay, bx, by, ok = proj
+    edges_all = idx.edges
+    if len(edges_all) != len(ax):
+        return None
+    mask = _seg_rect_mask(ax, ay, bx, by, ok, rect, crossing)
+    sel = viewport.scene.entity_selectable
+    hit_idx = np.where(mask)[0]
+    edges = [edges_all[int(i)] for i in hit_idx
+             if sel(edges_all[int(i)])
+             and not getattr(edges_all[int(i)], "hidden", False)]
+    faces = []
+    if crossing:
+        seen = set()
+        for i in hit_idx:
+            for f in edges_all[int(i)].faces:
+                if id(f) not in seen:
+                    seen.add(id(f))
+                    if sel(f):
+                        faces.append(f)
+    else:
+        hit_ids = {id(edges_all[int(i)]) for i in hit_idx}
+        face_edges: dict = {}
+        for e in edges_all:
+            for f in e.faces:
+                face_edges.setdefault(id(f), []).append(e)
+        for f in viewport.scene.faces:
+            es = face_edges.get(id(f))
+            if es and all(id(e) in hit_ids for e in es) and sel(f):
+                faces.append(f)
+    return edges, faces
+
+
+def _box_group_fast(viewport, group, rect, crossing):
+    """Vectorized box test for one (non-billboard) group via its chunk
+    arrays. True/False, or None to fall back to the per-vertex walk."""
+    if (getattr(group, "billboard", False)
+            or getattr(viewport, "_group_chunk", None) is None
+            or getattr(viewport, "_project_px", None) is None):
+        return None
+    import numpy as np
+    # A component's geometry lives in the placements it holds, each with its
+    # own chunk: reading only the top-level one found an EMPTY array for an
+    # imported component and dropped the whole test to the per-vertex Python
+    # walk — 1.15M vertices for the hedge.
+    expand = getattr(viewport, "_expand_placements", None)
+    places = expand(group) if expand is not None else [group]
+    corners, edge_parts = [], []
+    try:
+        for pg in places:
+            ch = viewport._group_chunk(pg)
+            v0, e1, e2 = ch["v0"], ch["e1"], ch["e2"]
+            if v0 is not None:
+                corners.extend((v0, v0 + e1, v0 + e2))
+            pair = np.frombuffer(ch["edges"], np.float32).reshape(-1, 3)
+            if len(pair):
+                edge_parts.append(pair.astype(np.float64))
+    except Exception:  # noqa: BLE001
+        return None
+    pairs = (np.concatenate(edge_parts, axis=0) if edge_parts
+             else np.empty((0, 3)))
+    if len(pairs):
+        corners.append(pairs)
+    if not corners:
+        return None
+    pts = np.concatenate(corners, axis=0)
+    xs, ys, ok = viewport._project_px(pts)
+    x0, y0, x1, y1 = rect
+    inside = ok & (xs >= x0) & (xs <= x1) & (ys >= y0) & (ys <= y1)
+    if crossing:
+        if inside.any():
+            return True
+        if len(pairs):
+            exs, eys, eok = xs[-len(pairs):], ys[-len(pairs):], ok[-len(pairs):]
+            m = _seg_rect_mask(exs[0::2], eys[0::2], exs[1::2], eys[1::2],
+                               eok[0::2] & eok[1::2], rect, True)
+            return bool(m.any())
+        return False
+    return bool(ok.all() and inside.all())
+
+
+def _pt_in_rect(p, rect) -> bool:
+    return rect[0] <= p[0] <= rect[2] and rect[1] <= p[1] <= rect[3]
+
+
+def _seg_seg_2d(p1, p2, p3, p4) -> bool:
+    """Whether 2D segments ``p1-p2`` and ``p3-p4`` properly cross."""
+    def ccw(a, b, c):
+        return (c[1] - a[1]) * (b[0] - a[0]) - (b[1] - a[1]) * (c[0] - a[0])
+    d1 = ccw(p3, p4, p1)
+    d2 = ccw(p3, p4, p2)
+    d3 = ccw(p1, p2, p3)
+    d4 = ccw(p1, p2, p4)
+    return (d1 > 0) != (d2 > 0) and (d3 > 0) != (d4 > 0)
+
+
+def _seg_rect_overlap(a, b, rect) -> bool:
+    """Whether segment ``a-b`` touches the rectangle (endpoint inside or an
+    edge crossing) — the crossing-selection test."""
+    if _pt_in_rect(a, rect) or _pt_in_rect(b, rect):
+        return True
+    x0, y0, x1, y1 = rect
+    corners = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+    return any(_seg_seg_2d(a, b, corners[i], corners[(i + 1) % 4]) for i in range(4))
+
+
+class SelectTool(Tool):
+    name = "Select"
+    shortcut = ""  # Space, bound in main_window; "S" is Scale
+    description = (
+        "Pick edges, faces and objects. Shift+click adds or takes away, "
+        "Ctrl+click adds, Shift+Ctrl+click takes away; the same with a "
+        "box.")
+    uses_snap = False  # selecting picks geometry; no snap markers
+    box_select = True   # supports the rubber-band window / crossing box
+
+    def on_activate(self, viewport) -> None:
+        pass
+
+    def on_deactivate(self, viewport) -> None:
+        viewport.set_hover(None)
+
+    def _pick(self, viewport, screen_x: float, screen_y: float):
+        """A group (picked as a unit) takes priority; then the edge under the
+        cursor (screen-space priority), then a dimension annotation, then the
+        front face."""
+        pick_label = getattr(viewport, "pick_text_label", None)
+        if pick_label is not None:
+            # The text block overdraws all geometry, so a click on the glyphs
+            # is unambiguous — it outranks every 3D pick. The label's thin
+            # leader line keeps its normal (post-edge) priority below.
+            label = pick_label(screen_x, screen_y, rect_only=True)
+            if label is not None:
+                return label
+        group = viewport.pick_group(screen_x, screen_y)
+        # Only an edge the user can SEE takes the click (issue #71): the
+        # hidden seams of a smooth surface, or edges behind the model, left
+        # a cylinder's side all but unclickable.
+        pick_visible = getattr(viewport, "pick_visible_edge", None)
+        edge = (pick_visible or viewport.pick_edge)(screen_x, screen_y)
+        if group is not None and edge is not None:
+            # A loose line drawn ON a group's face (or crossing in front of
+            # it) is the deliberate target — the thin edge is picked
+            # before the object behind it. Only a VISIBLE edge wins: one
+            # hidden behind the group's faces leaves the group as the pick.
+            point = getattr(viewport, "edge_point_under_cursor", None)
+            occluded = getattr(viewport, "_is_occluded", None)
+            if point is not None and occluded is not None:
+                p = point(edge, screen_x, screen_y)
+                if p is not None and not occluded(p):
+                    return edge
+        if group is not None:
+            return group
+        if edge is not None:
+            return edge
+        dim = viewport.pick_dimension(screen_x, screen_y)
+        if dim is not None:
+            return dim
+        pick_label = getattr(viewport, "pick_text_label", None)
+        label = pick_label(screen_x, screen_y) if pick_label else None
+        if label is not None:
+            return label
+        path = viewport.pick_geopath(screen_x, screen_y)
+        if path is not None:
+            return path
+        # Section planes pick by their frame, above guides.
+        pick_sec = getattr(viewport, "pick_section_plane", None)
+        sec = pick_sec(screen_x, screen_y) if pick_sec else None
+        if sec is not None:
+            return sec
+        # Guides select the usual way (click + Delete / right-click). Real
+        # geometry outranks them; a guide crossing a face still beats the face
+        # (a thin line is the more deliberate target).
+        pick_guide = getattr(viewport, "pick_guide", None)
+        guide = pick_guide(screen_x, screen_y) if pick_guide else None
+        if guide is not None:
+            return guide
+        face = viewport.pick_face(screen_x, screen_y)
+        if face is not None:
+            return face
+        # A reference image is the last candidate: it is an underlay, so
+        # anything drawn on top of it must win the click. Only bare picture
+        # selects the picture — which is how you then move or resize it.
+        pick_image = getattr(viewport, "pick_image_plane", None)
+        return pick_image(screen_x, screen_y) if pick_image else None
+
+    def on_click(self, ctx: ToolContext) -> None:
+        viewport = ctx.viewport
+        mode = selection_mode(ctx.modifiers)
+        # An extension's item (a render light) is drawn over the model, so
+        # a click on it outranks the geometry behind (issue #205).
+        pick_item = getattr(viewport, "pick_extension_item", None)
+        hit = (pick_item(ctx.screen.x(), ctx.screen.y())
+               if pick_item is not None else None)
+        if hit is not None:
+            viewport.scene.clear_selection()
+            viewport.set_extension_pick(hit)
+            return
+        if getattr(viewport, "extension_pick", None) is not None:
+            viewport.clear_extension_pick()
+        entity = self._pick(viewport, ctx.screen.x(), ctx.screen.y())
+        if entity is None:
+            if viewport.scene.edit_group is not None and mode == "replace" \
+                    and not viewport.scene.selection:
+                # Click outside: step out ONE level, so a click outside a
+                # nested group leaves you in its parent, not in the model.
+                viewport.end_one_group_edit()
+                return
+            if mode == "replace":
+                viewport.scene.clear_selection()
+        else:
+            picked = self._expand(viewport, entity)
+            viewport.scene.select(picked, mode=mode)
+        viewport.update()
+
+    @staticmethod
+    def _expand(viewport, entity):
+        """Grow a pick to its natural whole: a curved surface (faces joined by
+        soft edges) for a face, or the whole drawn curve (circle/arc) for one of
+        its segments — the classic behaviour. Plain entities select alone."""
+        if isinstance(entity, Face):
+            return viewport.scene.mesh.surface_of(entity)
+        if isinstance(entity, Edge) and getattr(entity, "curve", None) is not None:
+            return viewport.scene.mesh.curve_edges(entity)
+        return [entity]
+
+    def on_double_click(self, ctx: ToolContext) -> None:
+        """Double click: a face selects itself plus its bounding
+        edges; an edge selects itself plus its faces — and a GROUP opens for
+        editing (Groups v2: draw, push, erase inside it)."""
+        viewport = ctx.viewport
+        entity = self._pick(viewport, ctx.screen.x(), ctx.screen.y())
+        if isinstance(entity, Group):
+            # A 3D text too: double-click ENTERS it, as users expect (its
+            # letters are groups); re-editing the text is the right-click's
+            # «Edit 3D Text…» (Marco, 2026-09-18).
+            viewport.begin_group_edit(entity)
+            return
+        if isinstance(entity, SectionPlane):
+            # Double-clicking a section plane toggles the active cut.
+            viewport.history.execute(SetActiveSectionCommand(
+                None if entity.active else entity))
+            viewport.scene.select([entity])
+            viewport.update()
+            return
+        if isinstance(entity, TextLabel):
+            # As usual, double-clicking a leader text edits its text.
+            from PySide6.QtWidgets import QInputDialog
+            from core.i18n import tr
+            text, ok = QInputDialog.getMultiLineText(
+                viewport.window(), tr("Text"), tr("Label text:"),
+                entity.text)
+            if ok and text.strip() and text.strip() != entity.text:
+                viewport.history.execute(
+                    EditTextLabelCommand(entity, text.strip()))
+            viewport.update()
+            return
+        if isinstance(entity, Dimension):
+            # Double-clicking the dimension text edits it; "<>"
+            # stands for the measured value, and an empty text (or a bare
+            # "<>") goes back to the automatic value.
+            from PySide6.QtWidgets import QInputDialog
+            from core.i18n import tr
+            from core.history import EditDimensionTextCommand
+            fmt = getattr(viewport, "_format_dim_value", None)
+            style = getattr(viewport.scene, "dimension_style", {}) or {}
+            measured = (fmt(entity.value(), style) if fmt is not None
+                        else entity.label())
+            current = entity.text if entity.text else measured
+            text, ok = _prompts.get_text(
+                viewport.window(), tr("Dimension"),
+                tr("Dimension text (<> = measured value):"), text=current)
+            if ok:
+                new = text.strip()
+                if new in ("", "<>", measured):
+                    new = None
+                if new != entity.text:
+                    viewport.history.execute(
+                        EditDimensionTextCommand(entity, new))
+            viewport.update()
+            return
+        if not isinstance(entity, (Face, Edge)):
+            self.on_click(ctx)
+            return
+        mesh = viewport.scene.mesh
+        picked = list(self._expand(viewport, entity))
+        if isinstance(entity, Face):
+            for f in list(picked):
+                if not isinstance(f, Face):
+                    continue
+                for lp in (f.loop, *f.hole_loops):
+                    n = len(lp)
+                    for i in range(n):
+                        e = mesh.find_edge(lp[i], lp[(i + 1) % n])
+                        if e is not None:
+                            picked.append(e)
+        else:
+            for e in list(picked):
+                if isinstance(e, Edge):
+                    picked.extend(e.faces)
+        viewport.scene.select(picked, mode=selection_mode(ctx.modifiers))
+        viewport.update()
+
+    def on_triple_click(self, ctx: ToolContext) -> None:
+        """Triple click: everything physically connected to the
+        picked entity (the whole solid), walked through shared vertices."""
+        viewport = ctx.viewport
+        entity = self._pick(viewport, ctx.screen.x(), ctx.screen.y())
+        if not isinstance(entity, (Face, Edge)):
+            self.on_click(ctx)
+            return
+        from core.select_ops import all_connected
+        viewport.scene.select(all_connected([entity]),
+                              mode=selection_mode(ctx.modifiers))
+        viewport.update()
+
+    def on_hover(self, ctx: ToolContext) -> None:
+        viewport = ctx.viewport
+        viewport.set_hover(self._pick(viewport, ctx.screen.x(), ctx.screen.y()))
+
+    def on_box_select(self, viewport, rect, crossing: bool,
+                      additive: bool = False, mode: str | None = None) -> None:
+        w2p = viewport._world_to_pixel
+        picked = []
+        fast = _box_loose_fast(viewport, rect, crossing)
+        if fast is not None:
+            picked.extend(fast[0])
+            picked.extend(fast[1])
+        loose_iter = ((), ()) if fast is not None else (
+            viewport.scene.edges, viewport.scene.faces)
+        for edge in loose_iter[0]:
+            if not viewport.scene.entity_selectable(edge):
+                continue                        # hidden or locked layer
+            pa = w2p(edge.a)
+            pb = w2p(edge.b)
+            if pa is None or pb is None:
+                continue
+            if crossing:
+                if _seg_rect_overlap(pa, pb, rect):
+                    picked.append(edge)
+            elif _pt_in_rect(pa, rect) and _pt_in_rect(pb, rect):
+                picked.append(edge)
+        for face in loose_iter[1]:
+            if not viewport.scene.entity_selectable(face):
+                continue                        # hidden or locked layer
+            pts = [w2p(v) for v in face.vertices]
+            if any(p is None for p in pts):
+                continue
+            if crossing:
+                n = len(pts)
+                touches = any(_pt_in_rect(p, rect) for p in pts) or any(
+                    _seg_rect_overlap(pts[i], pts[(i + 1) % n], rect) for i in range(n)
+                )
+                if touches:
+                    picked.append(face)
+            elif all(_pt_in_rect(p, rect) for p in pts):
+                picked.append(face)
+        # Groups and component instances (the "box select skips groups"
+        # report). Window mode: every vertex inside. Crossing mode: any vertex
+        # inside, else any wireframe edge touching the box. Early exits keep
+        # the common reject cheap. Inside a group the box works on what the
+        # open group holds: its loose geometry above, and its
+        # CHILDREN here — the parts of an imported fountain are groups, and
+        # a box that skipped them could never take the whole fountain
+        # («quiero seleccionar toda esa pileta, no selecciona», Marco,
+        # 2026-09-11).
+        ctx = viewport.scene.edit_group
+        candidates = (getattr(viewport.scene, "groups", []) if ctx is None
+                      else (getattr(ctx, "children", None) or []))
+        if candidates:
+            for group in candidates:
+                if not viewport.scene.entity_selectable(group):
+                    continue
+                verdict = _box_group_fast(viewport, group, rect, crossing)
+                if verdict is not None:
+                    if verdict:
+                        picked.append(group)
+                    continue
+                # A component's geometry lives in the placements it holds,
+                # so the box has to test the whole subtree — the top-level
+                # mesh of an imported component is often empty, and reading
+                # only that made it unselectable by rubber band.
+                from core.group import iter_placements
+                places = [(pg, xf) for pg, xf in iter_placements(group)
+                          if pg.mesh.vertices]
+                if not places:
+                    continue
+
+                def gw2p(point, xf):
+                    return w2p(xf.map(point) if xf is not None else point)
+
+                if crossing:
+                    hit = False
+                    for pg, xf in places:
+                        for v in pg.mesh.vertices:
+                            p = gw2p(v.position, xf)
+                            if p is not None and _pt_in_rect(p, rect):
+                                hit = True
+                                break
+                        if hit:
+                            break
+                    if not hit:
+                        for pg, xf in places:
+                            for e in pg.mesh.edges:
+                                pa, pb = gw2p(e.a, xf), gw2p(e.b, xf)
+                                if (pa is not None and pb is not None
+                                        and _seg_rect_overlap(pa, pb, rect)):
+                                    hit = True
+                                    break
+                            if hit:
+                                break
+                    if hit:
+                        picked.append(group)
+                else:
+                    inside = True
+                    for pg, xf in places:
+                        for v in pg.mesh.vertices:
+                            p = gw2p(v.position, xf)
+                            if p is None or not _pt_in_rect(p, rect):
+                                inside = False
+                                break
+                        if not inside:
+                            break
+                    if inside:
+                        picked.append(group)
+        # Guides: an infinite line can never be fully enclosed, so a window
+        # box skips it and only a crossing box takes it. Guide
+        # points behave like any point. The line is clipped to the part in
+        # front of the camera before projecting (as render/snap do).
+        for g in getattr(viewport.scene, "guides", []):
+            if not viewport.scene.entity_selectable(g):
+                continue
+            if g.is_line:
+                if not crossing:
+                    continue
+                clip = getattr(viewport, "_clip_segment_front", None)
+                seg = clip(*g.segment()) if clip else g.segment()
+                if seg is None:
+                    continue
+                pa, pb = w2p(seg[0]), w2p(seg[1])
+                if (pa is not None and pb is not None
+                        and _seg_rect_overlap(pa, pb, rect)):
+                    picked.append(g)
+            else:
+                p = w2p(g.point)
+                if p is not None and _pt_in_rect(p, rect):
+                    picked.append(g)
+        selectable = getattr(viewport.scene, "entity_selectable",
+                             lambda _e: True)
+        for dim in getattr(viewport.scene, "dimensions", []):
+            if not selectable(dim):
+                continue
+            ap, bp = dim.line_points()
+            pa, pb = w2p(ap), w2p(bp)
+            if pa is None or pb is None:
+                continue
+            if crossing:
+                if _seg_rect_overlap(pa, pb, rect):
+                    picked.append(dim)
+            elif _pt_in_rect(pa, rect) and _pt_in_rect(pb, rect):
+                picked.append(dim)
+        for lab in getattr(viewport.scene, "text_labels", []):
+            if not selectable(lab):
+                continue
+            pa, pp = w2p(lab.anchor), w2p(lab.position())
+            if pp is None:
+                continue
+            if crossing:
+                if _pt_in_rect(pp, rect) or (
+                        pa is not None and _seg_rect_overlap(pa, pp, rect)):
+                    picked.append(lab)
+            elif _pt_in_rect(pp, rect) and (
+                    pa is None or _pt_in_rect(pa, rect)):
+                picked.append(lab)
+        if mode == "replace" and getattr(viewport, "extension_pick",
+                                         None) is not None:
+            viewport.clear_extension_pick()
+        viewport.scene.select(picked, additive=additive, mode=mode)
+        viewport.update()
+
+    def on_key(self, viewport, key: int, modifiers: Qt.KeyboardModifiers) -> bool:
+        if key == Qt.Key_Delete:
+            delete_selection_or_hover(viewport)
+            return True
+        if key == Qt.Key_Backspace:
+            # The selection only, never the hover: with the typed value
+            # emptied, one Backspace too many lands here and must not erase
+            # the face under the cursor.
+            erase_entities(viewport, list(viewport.scene.selection))
+            return True
+        return False
+
+
+# ---- Delete: the selection, or what is under the cursor ------------------------
+
+def expand_pick(viewport, entity) -> list:
+    """What a click on ``entity`` would select (see ``SelectTool._expand``)."""
+    return SelectTool._expand(viewport, entity)
+
+
+def erase_entities(viewport, entities) -> bool:
+    """Erase ``entities`` (any mix of pickable types) as ONE undoable step.
+    True if anything was erased."""
+    edges = [e for e in entities if isinstance(e, Edge)]
+    faces = [f for f in entities if isinstance(f, Face)]
+    groups = [g for g in entities if isinstance(g, Group)]
+    dims = [d for d in entities if isinstance(d, Dimension)]
+    labels = [t for t in entities if isinstance(t, TextLabel)]
+    paths = [p for p in entities if isinstance(p, GeoPath)]
+    guides = [g for g in entities if isinstance(g, Guide)]
+    splanes = [p for p in entities if isinstance(p, SectionPlane)]
+    commands = []
+    if edges or faces:
+        # Erasing an edge between two coplanar faces merges them back
+        # into one (as usual); any other erased edge takes its faces.
+        commands.append(EraseSelectionCommand(edges, faces))
+    commands.extend(DeleteGroupCommand(g) for g in groups)
+    if guides:
+        commands.append(DeleteGuidesCommand(guides))
+    if splanes:
+        commands.append(DeleteSectionPlanesCommand(splanes))
+    if dims:
+        commands.append(DeleteDimensionsCommand(dims))
+    if labels:
+        commands.append(DeleteTextLabelsCommand(labels))
+    if paths:
+        commands.append(DeleteGeoPathsCommand(paths))
+    if not commands:
+        return False
+    cmd = commands[0] if len(commands) == 1 else CompoundCommand(commands)
+    viewport.history.execute(cmd)
+    viewport.update()
+    return True
+
+
+def delete_selection_or_hover(viewport) -> bool:
+    """The Delete key: erase the selection; with NOTHING selected, erase
+    what is highlighted under the cursor — hover an edge or a face and press
+    Supr, no click needed. The hover grows like a click would (a whole
+    circle, a whole smooth surface), so what goes is what a click-then-Supr
+    would have erased. True if anything was erased."""
+    if getattr(viewport, "extension_pick", None) is not None:
+        return viewport.delete_extension_pick()      # a render light, say
+    selection = list(viewport.scene.selection)
+    if selection:
+        return erase_entities(viewport, selection)
+    hovered = getattr(viewport, "_hover_entity", None)
+    if hovered is None:
+        return False
+    viewport.set_hover(None)        # it is about to be gone
+    return erase_entities(viewport, expand_pick(viewport, hovered))

@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# © 2026 ArchEnergy s.r.o.
+-r requirements.txt
+pyinstaller==6.22.3

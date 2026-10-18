@@ -1,0 +1,264 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later; Úpravy © 2026 ArchEnergy s.r.o.; převzato z vlastního ArchControlu. -->
+<!doctype html><html lang="cs"><head><meta charset="utf-8"><title>ArchControl pro EnergySketch</title></head><body><h1>ArchControl pro EnergySketch</h1>
+<p><b>ArchEnergy s.r.o. — nativní plugin v Pythonu.</b></p>
+<h2>Začínáme v EnergySketch</h2>
+<ol><li>Soubor → Otevřít načte .skp do prázdného dokumentu. Názvy materiálů
+a komponent se zachovají. Originální soubor se při importu nepřepisuje.</li>
+<li>Rozšíření → ArchControl → Otevřít panel zobrazí tabulku ploch.
+Neznámý sever nejprve potvrďte v panelu nebo určete nástrojem Sever dvěma body.
+Úhel ArchControlu se měří proti směru hodinových ručiček od osy +Y.</li>
+<li>Filtr omezuje tabulku; Sčítat stejné slučuje shodné konstrukce.
+Pro výběr konkrétních ploch jedné komponenty slučování vypněte.
+Změny materiálů, skrývání i sever lze vrátit pomocí Zpět.</li>
+<li>Paleta materiálů umožňuje nový materiál, úpravu, duplikaci, malování,
+smazání a přenos knihovny JSON. Jedinečnost se kontroluje podle Typ–Číslo–Varianta.
+Neznámé U/g ponechte prázdné. RP má samostatná pole v materiálovém formuláři.</li>
+<li>Paleta zón zobrazuje komponenty, objem uzavřených těles a plochy obálky.
+Plošná nebo otevřená komponenta nemá doložitelný objem.</li>
+<li>Vložit mřížku oken: nastavte počet řad/sloupců, místní rozměry, mezery
+a materiál, potom klikněte do středu mřížky na fasádě. Červený náhled ukazuje
+budoucí polohu. Esc zruší nástroj, Zpět vrátí celou vloženou mřížku.
+Vzniknou plochy na povrchu s materiálem na líci i rubu, nikoli ostění ani
+proříznutí tloušťky stěny. U komponent se úprava sdílí mezi jejich kopiemi.</li>
+<li>Ukládejte jako .igz, aby se zachovala geometrie a údaje pluginu.</li></ol>
+<h2>Výstupy a kompatibilita</h2>
+<p>Panel nabízí Komplexní CSV, Energie po zónách a Renovační pas.
+Energie má 20 sloupců, oddělovač středník a UTF-8 s BOM.
+Renovační pas má 16 sloupců, čárku a UTF-8 bez BOM. Podle výslovného rozhodnutí
+zadavatele zachovává původní Ruby výpočty: místní plochu/normálu a zahrnutí
+skrytých ploch. Proto se může lišit od hlavní tabulky transformované geometrie.</p>
+<p>Úplná shoda všech CSV se současným referenčním exportem dosud není potvrzena.
+Podrobný aktuální stav a omezení jsou v ARCHENERGY.md.</p>
+<h2>Původní návod pro import CSV do Energie</h2>
+<p>Následující tabulky a obrázky pocházejí z původního ArchControlu. Popisují
+historicky ověřené nastavení v Energii, nikoli nové ověření této distribuce.
+Hodnoty Un odpovídají původnímu pluginu a jeho číselníku.</p>
+
+<div class="help">
+  
+
+  <div class="tabs">
+    
+    
+    
+  </div>
+
+  <div class="tab-panel active" id="tab-obecne">
+    <h2>Funkce</h2>
+    <ul>
+      <li>V&yacute;pis ploch - tabulka ploch podle materi&aacute;l&#367; a z&oacute;n</li>
+      <li>Filtr - textov&eacute; vyhled&aacute;v&aacute;n&iacute; v tabulce</li>
+      <li>Export CSV - komplexn&iacute; export tabulky</li>
+      <li>Export Energie - export typ&#367; konstrukc&iacute; pro Energii</li>
+      <li>Export Energie Z&oacute;ny - export pro ob&aacute;lku z&oacute;ny v Energii</li>
+      <li>Nastaven&iacute; severu - grafick&eacute; zad&aacute;n&iacute; severu pro orientaci ploch</li>
+      <li>Nov&yacute; materi&aacute;l - formul&aacute;&#345; pro vytvo&#345;en&iacute; materi&aacute;lu</li>
+      <li>Report EP / CV - sou&#269;et ploch materi&aacute;l&#367; EP-x a CV-x</li>
+      <li>Report Z&Oacute;NY - p&#345;ehled z&oacute;n, objem&#367; a ob&aacute;lky</li>
+    </ul>
+
+    <h2>Form&aacute;t materi&aacute;lu</h2>
+    <p>Obecn&yacute; form&aacute;t n&aacute;zvu materi&aacute;lu:</p>
+    <div class="format-box">Typ-&#268;&iacute;slo-Var-U-g-Popis</div>
+    <p class="example">Nap&#345;&iacute;klad: OD-1-V1-U0.9-G0.5-Okno ob&yacute;v&aacute;k</p>
+    <p>&#268;&aacute;sti Var, U a g jsou voliteln&eacute;. Pro okna (OD, OS, ODN, ODZ) je doporu&#269;eno zadat i g.</p>
+
+    <h2>Zkratky (&#268;SN 73 0540-2)</h2>
+    <table>
+      <thead>
+        <tr><th>Zkratka</th><th>V&yacute;znam</th><th>Un</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="abbrev">SO</td><td>St&#283;na vn&#283;j&scaron;&iacute; (obvodov&aacute;)</td><td>0,30</td></tr>
+        <tr><td class="abbrev">SCHS</td><td>St&#345;echa &scaron;ikm&aacute;</td><td>0,30</td></tr>
+        <tr><td class="abbrev">SCH</td><td>St&#345;echa ploch&aacute;</td><td>0,24</td></tr>
+        <tr><td class="abbrev">STRV</td><td>Strop nad venkovn&iacute;m prostorem</td><td>0,24</td></tr>
+        <tr><td class="abbrev">STR</td><td>Strop pod nevyt&aacute;p&#283;n&yacute;m prostorem</td><td>0,30</td></tr>
+        <tr><td class="abbrev">PDL</td><td>Podlaha k zemi</td><td>0,45</td></tr>
+        <tr><td class="abbrev">PDLE</td><td>Podlaha nad pr&#367;lezn&yacute;m prostorem</td><td>0,30</td></tr>
+        <tr><td class="abbrev">OD</td><td>Okno vn&#283;j&scaron;&iacute;</td><td>1,50</td></tr>
+        <tr><td class="abbrev">OS</td><td>Okno st&#345;e&scaron;n&iacute;</td><td>1,50</td></tr>
+        <tr><td class="abbrev">DO</td><td>Dve&#345;e vn&#283;j&scaron;&iacute;</td><td>1,70</td></tr>
+        <tr><td class="abbrev">DN</td><td>Dve&#345;e vnit&#345;n&iacute;</td><td>2,30</td></tr>
+        <tr><td class="abbrev">SNN</td><td>St&#283;na k podkrov&iacute;</td><td>0,30</td></tr>
+        <tr><td class="abbrev">SN</td><td>St&#283;na k nevyt&aacute;p&#283;n&eacute;mu prostoru</td><td>0,95</td></tr>
+        <tr><td class="abbrev">SNG</td><td>St&#283;na k gar&aacute;&#382;i</td><td>0,30</td></tr>
+        <tr><td class="abbrev">SNM</td><td>St&#283;na mezi budovami</td><td>1,10</td></tr>
+        <tr><td class="abbrev">STRT</td><td>Strop mezi prostory dT &lt;= 10 C</td><td>1,10</td></tr>
+        <tr><td class="abbrev">SNT</td><td>St&#283;na mezi prostory dT &lt;= 10 C</td><td>1,30</td></tr>
+        <tr><td class="abbrev">STR5</td><td>Strop mezi prostory dT &lt;= 5 C</td><td>2,20</td></tr>
+        <tr><td class="abbrev">SNT5</td><td>St&#283;na mezi prostory dT &lt;= 5 C</td><td>2,70</td></tr>
+        <tr><td class="abbrev">ODN</td><td>V&yacute;pl&#328; otvoru k nevyt&aacute;p&#283;n&eacute;mu prostoru</td><td>3,00</td></tr>
+        <tr><td class="abbrev">ODZ</td><td>V&yacute;pl&#328; otvoru do gar&aacute;&#382;e</td><td>1,70</td></tr>
+      </tbody>
+    </table>
+
+    <h2>EP a CV (report)</h2>
+    <p>Materi&aacute;ly ve form&aacute;tu <strong>EP-1-zona 1</strong> a <strong>CV-1-zona 2</strong> se s&#269;&iacute;taj&iacute; v reportu EP/CV. V hlavn&iacute; tabulce nejsou, ale v paletce materi&aacute;l&#367; se zobrazuj&iacute;.</p>
+  </div>
+
+  <div class="tab-panel" id="tab-energie-steny">
+    <h2>Co je zat&iacute;m ov&#283;&#345;en&eacute;</h2>
+    <ul>
+      <li><strong>Export Energie Z&oacute;ny</strong> um&iacute; import konstrukc&iacute; do ob&aacute;lky z&oacute;ny.</li>
+      <li>Sloupec <strong>Typ Energie</strong> rozli&scaron;uje, do kter&eacute; &#269;&aacute;sti Energie konstrukce pat&#345;&iacute;.</li>
+      <li>N&aacute;zev konstrukce v exportu z&oacute;n mus&iacute; z&#367;stat stejn&yacute; jako v b&#283;&#382;n&eacute;m <strong>Export Energie</strong>.</li>
+      <li>Pokud chyb&iacute; U nebo je 0, exportuje se <strong>999</strong> jen do CSV pro Energii.</li>
+    </ul>
+
+    <div class="note">
+      Praktick&aacute; pozn&aacute;mka: n&#283;kter&eacute; mapov&aacute;n&iacute; v Energii funguje podle re&aacute;ln&eacute;ho testu jinak, ne&#382; by &#269;lov&#283;k &#269;ekal z n&aacute;zvu sloupce. Pokud n&#283;co funguje ov&#283;&#345;en&#283; v testu, ber to p&#345;ednostn&#283; podle t&eacute;to karty.
+    </div>
+
+    <div class="note">
+      Mapov&aacute;n&iacute; sloupc&#367; v Energii sta&#269;&iacute; obvykle nastavit jen jednou. Energie si nastaven&iacute; pamatuje, tak&#382;e p&#345;i dal&scaron;&iacute;m importu u&#382; nen&iacute; nutn&eacute; v&scaron;e znovu naklik&aacute;vat.
+    </div>
+
+    <h2>Typ Energie</h2>
+    <table>
+      <thead>
+        <tr><th>K&oacute;d</th><th>V&yacute;znam</th><th>Pou&#382;it&iacute;</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>O</strong></td><td>V&yacute;pln&#283; otvor&#367;</td><td>OD, OS, ODN, ODZ, DO, DN</td></tr>
+        <tr><td><strong>S</strong></td><td>St&#283;ny a st&#345;echy</td><td>obvodov&eacute; st&#283;ny a st&#345;echy v&#367;&#269;i exteri&eacute;ru</td></tr>
+        <tr><td><strong>P</strong></td><td>Podlahy</td><td>PDL, PDLE</td></tr>
+        <tr><td><strong>N</strong></td><td>Konstrukce k nevyt&aacute;p&#283;n&yacute;m prostor&#367;m</td><td>SN, SNN, SNG, SNM, STR, STRT, SNT, STR5, SNT5</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Import typ&#367; konstrukc&iacute;</h2>
+    <div class="shot">
+      <img src="help_assets/energie/import_konstrukci.png" alt="Import typ&#367; konstrukc&iacute;">
+      <p>Tento import slou&#382;&iacute; pro typy konstrukc&iacute; mimo ob&aacute;lku z&oacute;ny.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Pole v Energii</th><th>Sloupec CSV</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>N&aacute;zev</td><td>1. sloupec</td></tr>
+        <tr><td>Sou&#269;. prostupu tepla U</td><td>7. sloupec</td></tr>
+        <tr><td>Po&#382;adavek UN20</td><td>10. sloupec</td></tr>
+        <tr><td>K&oacute;d konstrukce</td><td>12. sloupec</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><strong>soubor obsahuje i st&#283;ny, st&#345;echy, podlahy</strong> = ano</li>
+      <li><strong>V&yacute;pln&#283; otvor&#367; jsou ozna&#269;eny k&oacute;dem</strong> = O</li>
+      <li><strong>Prvn&iacute; &#345;&aacute;dek CSV obsahuje</strong> = n&aacute;zvy sloupc&#367;</li>
+      <li><strong>Odd&#283;lova&#269;</strong> = ;</li>
+    </ul>
+
+    <h2>Import nepr&#367;svitn&yacute;ch konstrukc&iacute; v ob&aacute;lce z&oacute;ny</h2>
+    <div class="shot">
+      <img src="help_assets/energie/import_konstrukci_v_obalce_zony.png" alt="Import nepr&#367;svitn&yacute;ch konstrukc&iacute; v ob&aacute;lce z&oacute;ny">
+      <p>Prakticky ov&#283;&#345;en&eacute; mapov&aacute;n&iacute; pro import konstrukc&iacute; v ob&aacute;lce z&oacute;ny.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Pole v Energii</th><th>Sloupec CSV</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>N&aacute;zev</td><td>1. sloupec</td></tr>
+        <tr><td>Plocha</td><td>2. sloupec</td></tr>
+        <tr><td>Orientace</td><td>5. sloupec</td></tr>
+        <tr><td>&#268;initel tepl. redukce b</td><td>15. sloupec</td></tr>
+        <tr><td>Sklon</td><td>6. sloupec</td></tr>
+        <tr><td>&#268;initel st&iacute;n&#283;n&iacute; okol&iacute;m</td><td>16. sloupec</td></tr>
+        <tr><td>&#268;initel st&iacute;n&#283;n&iacute; mark&yacute;zami</td><td>17. sloupec</td></tr>
+        <tr><td>&#268;initel st&iacute;n&#283;n&iacute; st&#283;nami</td><td>18. sloupec</td></tr>
+        <tr><td>&#268;initel viditelnosti oblohy</td><td>20. sloupec</td></tr>
+        <tr><td>&#268;&iacute;slo z&oacute;ny</td><td>13. sloupec</td></tr>
+        <tr><td>K&oacute;d konstrukce</td><td>12. sloupec</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><strong>v souboru jsou konstrukce z r&#367;zn&yacute;ch z&oacute;n</strong> = ano</li>
+      <li><strong>soubor obsahuje i v&yacute;pln&#283; otvor&#367; a podlahy</strong> = ano</li>
+      <li><strong>St&#283;ny a st&#345;echy jsou ozna&#269;eny k&oacute;dem</strong> = S</li>
+      <li><strong>Prvn&iacute; &#345;&aacute;dek CSV obsahuje</strong> = n&aacute;zvy sloupc&#367;</li>
+      <li><strong>Odd&#283;lova&#269;</strong> = ;</li>
+    </ul>
+  </div>
+
+  <div class="tab-panel" id="tab-energie-vyplne">
+    <h2>Co je zat&iacute;m ov&#283;&#345;en&eacute;</h2>
+    <ul>
+      <li>Import typ&#367; v&yacute;pln&iacute; a import v&yacute;pln&iacute; v ob&aacute;lce z&oacute;ny se nastavuj&iacute; zvl&aacute;&scaron;&#357;.</li>
+      <li>U importu typ&#367; v&yacute;pln&iacute; se <strong>&scaron;&iacute;&#345;ka</strong> a <strong>v&yacute;&scaron;ka</strong> nevyb&iacute;r&aacute;.</li>
+      <li>V&yacute;pln&#283; otvor&#367; jsou zna&#269;en&eacute; k&oacute;dem <strong>O</strong>.</li>
+      <li>Mapov&aacute;n&iacute; sloupc&#367; sta&#269;&iacute; v Energii obvykle nastavit jen jednou.</li>
+    </ul>
+
+    <div class="note">
+      &Scaron;&iacute;&#345;ka a v&yacute;&scaron;ka se pro okna dopl&#328;uj&iacute; a&#382; p&#345;i dal&scaron;&iacute;m importu podle sv&#283;tov&yacute;ch stran. Proto se u importu typ&#367; v&yacute;pln&iacute; tato dv&#283; pole nech&aacute;vaj&iacute; pr&aacute;zdn&aacute;.
+    </div>
+
+    <h2>Import typ&#367; v&yacute;pln&iacute; otvor&#367;</h2>
+    <div class="shot">
+      <img src="help_assets/energie/import_typu_vyplni.png" alt="Import typ&#367; v&yacute;pln&iacute; otvor&#367;">
+      <p>Import typ&#367; v&yacute;pln&iacute; se nastavuje jen jednou. &Scaron;&iacute;&#345;ka a v&yacute;&scaron;ka se zde nevyb&iacute;r&aacute;.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Pole v Energii</th><th>Sloupec CSV</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>N&aacute;zev</td><td>1. sloupec</td></tr>
+        <tr><td>&Scaron;&iacute;&#345;ka</td><td>nevyb&iacute;rat</td></tr>
+        <tr><td>V&yacute;&scaron;ka</td><td>nevyb&iacute;rat</td></tr>
+        <tr><td>Sklon</td><td>6. sloupec</td></tr>
+        <tr><td>Sou&#269;. prostupu tepla Uw</td><td>7. sloupec</td></tr>
+        <tr><td>Propustnost sl. z&aacute;&#345;en&iacute; g</td><td>8. sloupec</td></tr>
+        <tr><td>Kor. &#269;initel zasklen&iacute;</td><td>9. sloupec</td></tr>
+        <tr><td>Po&#382;adavek UN20</td><td>10. sloupec</td></tr>
+        <tr><td>K&oacute;d konstrukce</td><td>12. sloupec</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><strong>soubor obsahuje i st&#283;ny, st&#345;echy, podlahy</strong> = ano</li>
+      <li><strong>V&yacute;pln&#283; otvor&#367; jsou ozna&#269;eny k&oacute;dem</strong> = O</li>
+      <li><strong>Prvn&iacute; &#345;&aacute;dek CSV obsahuje</strong> = n&aacute;zvy sloupc&#367;</li>
+      <li><strong>Odd&#283;lova&#269;</strong> = ;</li>
+    </ul>
+
+    <h2>Import v&yacute;pln&iacute; otvor&#367; v ob&aacute;lce z&oacute;ny</h2>
+    <div class="shot">
+      <img src="help_assets/energie/import_vyplni_v_obalce_zony.png" alt="Import v&yacute;pln&iacute; otvor&#367; v ob&aacute;lce z&oacute;ny">
+      <p>Mapov&aacute;n&iacute; pro v&yacute;pln&#283; otvor&#367; v ob&aacute;lce z&oacute;ny. Tady se &scaron;&iacute;&#345;ka a v&yacute;&scaron;ka tak&eacute; nech&aacute;vaj&iacute; pr&aacute;zdn&eacute;.</p>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Pole v Energii</th><th>Sloupec CSV</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>N&aacute;zev</td><td>1. sloupec</td></tr>
+        <tr><td>&Scaron;&iacute;&#345;ka</td><td>nevyb&iacute;rat</td></tr>
+        <tr><td>V&yacute;&scaron;ka</td><td>nevyb&iacute;rat</td></tr>
+        <tr><td>Kor. &#269;initel zasklen&iacute;</td><td>9. sloupec</td></tr>
+        <tr><td>Orientace</td><td>5. sloupec</td></tr>
+        <tr><td>&#268;initel tepl. redukce b</td><td>15. sloupec</td></tr>
+        <tr><td>&#268;initel st&iacute;n&#283;n&iacute; okol&iacute;m</td><td>16. sloupec</td></tr>
+        <tr><td>&#268;initel st&iacute;n&#283;n&iacute; mark&yacute;zami</td><td>17. sloupec</td></tr>
+        <tr><td>&#268;initel st&iacute;n&#283;n&iacute; st&#283;nami</td><td>18. sloupec</td></tr>
+        <tr><td>&#268;initel clon&#283;n&iacute; &#382;aluziemi</td><td>19. sloupec</td></tr>
+        <tr><td>&#268;initel viditelnosti oblohy</td><td>20. sloupec</td></tr>
+        <tr><td>&#268;&iacute;slo z&oacute;ny</td><td>13. sloupec</td></tr>
+        <tr><td>K&oacute;d konstrukce</td><td>12. sloupec</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><strong>v souboru jsou konstrukce z r&#367;zn&yacute;ch z&oacute;n</strong> = ano</li>
+      <li><strong>soubor obsahuje i st&#283;ny, st&#345;echy, podlahy</strong> = ano</li>
+      <li><strong>V&yacute;pln&#283; otvor&#367; jsou ozna&#269;eny k&oacute;dem</strong> = O</li>
+      <li><strong>Prvn&iacute; &#345;&aacute;dek CSV obsahuje</strong> = n&aacute;zvy sloupc&#367;</li>
+      <li><strong>Odd&#283;lova&#269;</strong> = ;</li>
+    </ul>
+  </div>
+
+  <p>EnergySketch · ArchControl · ArchEnergy s.r.o. — úpravy 18. 10. 2026</p>
+</div>
+
+
+</body></html>
