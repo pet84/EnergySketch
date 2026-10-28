@@ -20,7 +20,8 @@ Nový profil má dvě horní řady nástrojů, dvousloupcové kreslení a měře
 a panely vpravo s otevřeným ArchControlem. Výběr 114 ikon kombinuje původní
 ikony EnergySketch (44), vlastní SVG (64) a šest návrhů Arrow 2 Telos.
 Existující uložené rozložení se při aktualizaci zachovává. Výchozí rozložení
-lze znovu vyvolat příkazy pro obnovení lišt a panelů v nabídce Zobrazení.
+lze znovu vyvolat přes **Okno → Obnovit výchozí lišty nástrojů** a
+**Okno → Panely → Obnovit výchozí panely**.
 
 ## ArchControl
 
