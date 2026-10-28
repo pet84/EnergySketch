@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
 # EnergySketch — návod a stav
 
-Vývojová verze 0.1, stav k 19. 10. 2026. EnergySketch je upravená verze IngeTrazo;
+Alfa verze 0.1 alfa 2, stav k 28. 10. 2026; základ IngeTrazo 0.5.11. EnergySketch je upravená verze IngeTrazo;
 původní autoři zůstávají uvedeni v AUTHORS a licence v LICENSE.
 
 ## Běžná práce
@@ -13,6 +13,14 @@ DAE lze použít pro přenos geometrie, ale není náhradou IGZ pro metadata Arc
 U instalace pro Windows je nutná celá složka programu včetně `_internal`.
 Profil je ve `%APPDATA%/EnergySketch/`; sestavení z tohoto repozitáře nemění
 uživatelské nastavení jiných aplikací.
+
+## Rozložení a ikony
+
+Nový profil má dvě horní řady nástrojů, dvousloupcové kreslení a měření vlevo
+a panely vpravo s otevřeným ArchControlem. Výběr 114 ikon kombinuje původní
+ikony EnergySketch (44), vlastní SVG (64) a šest návrhů Arrow 2 Telos.
+Existující uložené rozložení se při aktualizaci zachovává. Výchozí rozložení
+lze znovu vyvolat příkazy pro obnovení lišt a panelů v nabídce Zobrazení.
 
 ## ArchControl
 

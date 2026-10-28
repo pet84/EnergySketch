@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="fillet-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="fillet-title">Zaoblení</title>
+  <path d="M5 4V27H28" fill="none" stroke="#252B33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" /><path d="M10 4V14Q10 22 18 22H28" fill="none" stroke="#3288DF" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" /><circle cx="10" cy="14" r="2.4" fill="#3288DF"/><circle cx="18" cy="22" r="2.4" fill="#3288DF"/>
+</svg>

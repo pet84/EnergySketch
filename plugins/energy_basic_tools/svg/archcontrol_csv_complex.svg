@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="archcontrol_csv_complex-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="archcontrol_csv_complex-title">Export přehledu konstrukcí</title>
+  <rect x="4" y="4" width="24" height="24" rx="0" fill="none" stroke="#252B33" stroke-width="2.25"/><path d="M4 12H28M4 20H28M12 4V28" fill="none" stroke="#252B33" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M21 4V28" fill="none" stroke="#3288DF" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

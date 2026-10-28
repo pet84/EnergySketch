@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="comp_terreno-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="comp_terreno-title">Profil terénu</title>
+  <path d="M3 25 9 18 15 21 24 7 30 13M3 29H29" fill="none" stroke="#252B33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" /><path d="M7 25 5 28M14 25 12 28M21 22 18 28M28 17 25 28" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

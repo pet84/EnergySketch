@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="comp_leyenda-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="comp_leyenda-title">Legenda</title>
+  <rect x="4" y="4" width="24" height="24" rx="0" fill="none" stroke="#252B33" stroke-width="2.25"/><rect x="8" y="9" width="4" height="4" rx="0" fill="#3288DF" stroke="#3288DF" stroke-width="1.5"/><rect x="8" y="20" width="4" height="4" rx="0" fill="#3288DF" stroke="#3288DF" stroke-width="1.5"/><path d="M17 11H24M17 22H24" fill="none" stroke="#252B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

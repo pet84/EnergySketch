@@ -65,6 +65,11 @@ def on_activate(self, viewport):
     viewport.notify_scene_changed()
 ```
 
+On failure, `SnapshotImport` restores the original membership and order of
+groups, layers, saved views, dimensions, text labels and sheets, including
+objects removed by the failed mutation. These collections are restored in
+place so existing scripting-scope references stay valid.
+
 Useful, honest data points (what the app itself uses — see the bundled
 `plugins/model_info.py` for a worked example):
 
@@ -201,6 +206,25 @@ it; a provider that raises is logged and skipped, an overlay that raises
 is logged once and removed, never breaking the frame or the cursor; the
 painter state is saved and restored around every overlay; document data
 that is not JSON-safe is dropped on save rather than failing it.
+
+### Toolbars created after startup
+
+A worker can publish its toolbars after `setup(app)` and the window's initial
+layout restoration have finished. Give every toolbar a stable `objectName`.
+Then call `app.restore_toolbar_layout()` from the worker's queued GUI-thread
+ready handler, after adding all its toolbars:
+
+```python
+def on_worker_ready(self):             # a slot on the GUI-thread host QObject
+    self.create_toolbars()             # stable object names, including their actions
+    self.app.restore_toolbar_layout()
+```
+
+The call restores saved docking areas, rows, order and visibility. Repeated
+ready notifications on the same `ExtensionApp` do nothing after restoration,
+so they cannot undo a subsequent user rearrangement. A fresh profile keeps
+the extension's default placement. This hook is for startup completion;
+do not create a new `ExtensionApp` and restore the layout on every command.
 
 ### Managing community extensions
 

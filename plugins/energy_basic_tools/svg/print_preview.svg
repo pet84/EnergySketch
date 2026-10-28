@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="print_preview-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="print_preview-title">Náhled tisku</title>
+  <rect x="4" y="10" width="24" height="14" rx="2" fill="none" stroke="#252B33" stroke-width="2.25"/><path d="M9 10V3H23V10M9 20H23V29H9Z" fill="none" stroke="#252B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><circle cx="24" cy="14" r="1.7" fill="#3288DF"/><path d="M13 24H19" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

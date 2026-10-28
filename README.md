@@ -14,11 +14,14 @@ otevřeném programu. Samotný EnergySketch lze používat bez povinného předp
 
 ## Stav projektu
 
-Vývojová verze **0.1**, založená na IngeTrazo 0.5.8. Veřejný repozitář obsahuje
-zdrojový kód; zveřejnění zdrojů není potvrzením dokončeného produkčního vydání.
+Alfa verze **0.1 alfa 2**, založená na IngeTrazo **0.5.11**.
+[Stažení pro Windows](https://github.com/pet84/EnergySketch/releases/tag/v0.1.0-alfa.2)
+a [produktová stránka](https://energyapp.cz/energysketch).
 Naše sestavení je ověřované na Windows; ostatní platformy vyžadují další ověření.
 
-- České rozhraní, výchozí světlý motiv, modré zvýraznění a velké ikony.
+- České rozhraní, výchozí světlý motiv, modré zvýraznění a 114 vybraných ikon.
+- Dvě horní řady nástrojů, dvousloupcové kreslení vlevo a panely vpravo.
+- Hladiny včetně nové lišty, filtrů a vlastností z IngeTrazo 0.5.11.
 - Import SKP, práce s plochami, hranami, skupinami, komponentami a materiály.
 - ArchControl: tabulka ploch, materiály, zóny, orientace a určení severu.
 - Tři CSV exporty: Komplexní CSV, Energie po zónách a Renovační pas.
@@ -55,6 +58,7 @@ na těchto platformách ještě nejsou součástí našeho ověření.
 .\.venv\Scripts\python.exe -m pip install -r requirements-build.txt
 New-Item -ItemType Directory -Force output/archenergy
 .\.venv\Scripts\python.exe scripts/archenergy_fetch_dwg.py
+.\.venv\Scripts\python.exe scripts/archenergy_fetch_native.py
 .\.venv\Scripts\python.exe scripts/archenergy_prepare_build.py
 .\.venv\Scripts\python.exe -m PyInstaller --noconfirm EnergySketch.spec
 ```
@@ -62,8 +66,10 @@ New-Item -ItemType Directory -Force output/archenergy
 Výsledek je `dist/EnergySketch/EnergySketch.exe` a pomocník `EnergySketch-mcp.exe`.
 Přenášejte celou složku EnergySketch včetně `_internal`. K sestavení nejsou potřeba
 interní zákaznické modely, protokoly ani původní Ruby plugin.
-Volitelný experimentální Rust modul se sestavuje zvlášť podle původní vývojářské
-dokumentace; běžné Python jádro ho nevyžaduje.
+Windows sestavení obsahuje nezměněné Rust jádro z ověřeného upstream vydání 0.5.11.
+Skript archenergy_fetch_native.py kontroluje SHA-256 celého upstream archivu.
+Vlastní sestavení jádra ze zdrojů popisuje původní vývojářská dokumentace.
+Při spuštění ze zdrojů je bez nativního modulu dostupné Python jádro.
 
 ## Kontroly
 

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="view_bottom-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="view_bottom-title">Pohled zdola</title>
+  <rect x="5" y="5" width="22" height="22" rx="0" fill="none" stroke="#252B33" stroke-width="2.25"/><path d="M6 21H26V26H6Z" fill="#3288DF"/><path d="M10 10H22M10 16H22" fill="none" stroke="#252B33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

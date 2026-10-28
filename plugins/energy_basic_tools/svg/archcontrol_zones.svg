@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="archcontrol_zones-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="archcontrol_zones-title">Zóny ArchControl</title>
+  <path d="M16 16 28 10V23L16 29Z" fill="#3288DF"/><path d="M16 4 28 10V23L16 29 4 23V10ZM4 10 16 16 28 10M16 16V29" fill="none" stroke="#252B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M10 7 22 13V25" fill="none" stroke="#3288DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

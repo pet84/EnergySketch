@@ -12,3 +12,6 @@ výchozí vzhled, doplnění řezu, integraci kapátka a obnovu reportů při na
 Podrobnosti a omezení: ARCHENERGY.md. Původ zdrojů: UPSTREAM.md.
 Licence převzatých částí a knihoven zůstávají podle jejich původních podmínek;
 plugin obsahuje samostatné oznámení a licenci algoritmu Ruby qs6.
+
+Aktualizace 28. 10. 2026: základ IngeTrazo 0.5.11, hladiny, doplněná čeština,
+schválené rozložení a sada 114 ikon (44 původních, 64 Codex SVG, 6 Arrow 2 Telos).

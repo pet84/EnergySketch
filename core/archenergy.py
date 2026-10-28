@@ -33,6 +33,8 @@ def configure_profile() -> None:
     from PySide6.QtCore import QCoreApplication, QSettings
     QCoreApplication.setOrganizationName(PRODUCT)
     QCoreApplication.setApplicationName(PRODUCT)
+    if QCoreApplication.instance() is not None:
+        QCoreApplication.instance().setProperty('energysketch_profile', True)
     QSettings.setDefaultFormat(QSettings.IniFormat)
     QSettings.setPath(QSettings.IniFormat, QSettings.UserScope,
                       str(user_data_dir().parent))
@@ -40,6 +42,8 @@ def configure_profile() -> None:
     # later user choices and the upstream legacy keys remain authoritative.
     from . import general_settings
     settings = QSettings()
+    if settings.value('ui/window_state') is None:
+        settings.setValue('ui/energy_factory_pending',True)
     for name, default in (("theme", "light"), ("accent", "blue")):
         if general_settings.value(name, settings=settings) is None:
             general_settings.set_value(name, default, settings=settings)

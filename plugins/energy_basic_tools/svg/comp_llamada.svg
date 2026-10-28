@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="comp_llamada-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="comp_llamada-title">Odkazová čára</title>
+  <path d="M4 26 12 14H28" fill="none" stroke="#252B33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" /><circle cx="4" cy="26" r="2.5" fill="#3288DF"/><circle cx="23" cy="7" r="5" fill="none" stroke="#3288DF" stroke-width="2"/><path d="M23 5V9" fill="none" stroke="#3288DF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

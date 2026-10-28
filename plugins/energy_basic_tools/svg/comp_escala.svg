@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="comp_escala-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="comp_escala-title">Grafické měřítko</title>
+  <path d="M3 14H29V24H3ZM3 14V9M16 14V9M29 14V9" fill="none" stroke="#252B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M3 15H10V23H3ZM16 15H23V23H16Z" fill="#3288DF"/><path d="M3 28H29" fill="none" stroke="#3288DF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

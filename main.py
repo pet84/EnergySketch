@@ -14,6 +14,10 @@ import os
 import sys
 from pathlib import Path
 
+# Before any thread allocates (see core.malloc_arenas).
+from core import malloc_arenas
+malloc_arenas.limit()
+
 # Black box: a native crash (GL driver, Qt) kills the process without a
 # Python traceback — faulthandler leaves the Python stacks of every thread
 # in this file so the next "it just closed" has an autopsy. It lives in the
@@ -63,20 +67,59 @@ class _ButtonsOnlyTranslator(QTranslator):
     _CONTEXTS = frozenset({"QPlatformTheme", "QMessageBox",
                            "QDialogButtonBox"})
 
+    _BUILTIN = {
+        "vi": {
+            "&OK": "&Đồng ý",
+            "OK": "Đồng ý",
+            "&Cancel": "Hủy",
+            "Cancel": "Hủy",
+            "&Yes": "&Có",
+            "Yes": "Có",
+            "&No": "&Không",
+            "No": "Không",
+            "&Save": "&Lưu",
+            "Save": "Lưu",
+            "&Discard": "&Hủy thay đổi",
+            "Discard": "Hủy thay đổi",
+            "&Close": "&Đóng",
+            "Close": "Đóng",
+            "&Apply": "&Áp dụng",
+            "Apply": "Áp dụng",
+            "&Open": "&Mở",
+            "Open": "Mở",
+            "&Help": "&Trợ giúp",
+            "Help": "Trợ giúp",
+            "Don't Save": "Không lưu",
+            "&Don't Save": "&Không lưu",
+            "Reset": "Đặt lại",
+            "Restore Defaults": "Khôi phục mặc định",
+        }
+    }
+
     def __init__(self) -> None:
         super().__init__()
         self._qt = QTranslator()
+        self._lang = ""
 
     def load_qt(self, lang: str) -> bool:
+        self._lang = lang
+        if lang in self._BUILTIN:
+            return True
         folder = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
         return self._qt.load(f"qtbase_{lang.replace('-', '_')}", folder)
 
     def isEmpty(self) -> bool:
+        if self._lang in self._BUILTIN:
+            return False
         return self._qt.isEmpty()
 
     def translate(self, context, source, disambiguation=None, n=-1):
         if context not in self._CONTEXTS:
             return None                   # not ours: Qt keeps its text
+        if self._lang in self._BUILTIN:
+            trans = self._BUILTIN[self._lang].get(source)
+            if trans:
+                return trans
         return self._qt.translate(context, source, disambiguation, n)
 
 
@@ -133,6 +176,20 @@ def _open_document_in(window, doc: "Path") -> None:
         window.load_extensions()
     ext = doc.suffix.lower()
     if ext == ".igz" or ext in getattr(window, "file_openers", {}):
+        # A document REPLACES the drawing this window holds. File ▸ Open
+        # and Open Recent ask about unsaved changes before they call
+        # open_path; a path arriving from outside — a double-click handed
+        # over by the single instance, a macOS FileOpen event — had nobody
+        # asking, so the running drawing went away silently (issue #956).
+        # Ask here, at the seam every outside route shares. A cold launch
+        # holds nothing to lose, so the question is a no-op there, and an
+        # import (the .skp branch below) only ADDS to the drawing and is
+        # not asked, like File ▸ Import.
+        from core.i18n import tr
+        confirm = getattr(window, "_confirm_discard", None)
+        if confirm is not None and not confirm(
+                tr("Discard current drawing and open another?")):
+            return
         window.open_path(doc)       # an extension's own type goes to its opener
     elif ext == ".skp":
         from PySide6.QtCore import QTimer
@@ -231,6 +288,11 @@ def _self_check() -> int:
           + (f" (Rust {mod.__version__} available)" if mod else ""))
     if mod is None and os.environ.get("INGETRAZO_REQUIRE_RUST") == "1":
         problems.append("native engine")
+    if mod is not None:
+        # Which C++ library's QVector3D length the kernels copy bit for bit
+        # (none: those kernels stay in Python, e.g. Qt built another way).
+        from core._native import qt_hypot
+        print(f"  vector length  : {qt_hypot() or 'Python (no formula matches)'}")
 
     # ``ingetrazo --mcp`` runs scripts/ingetrazo_mcp.py by path, and that
     # server reads its recipe book from core.ai_recipes. The Flatpak of
@@ -323,6 +385,23 @@ def _self_check() -> int:
     except Exception as exc:  # noqa: BLE001
         where = f"({exc})"
     print(f"  Qt buttons (opt): {where}")
+
+    # Qt's HTTPS (extension manager, map tiles): the Windows package ships
+    # no OpenSSL backend, so Qt never picks up a foreign libssl left in
+    # System32 (#564). Read from the plugin folder: asking Qt which
+    # backends exist would itself load OpenSSL.
+    if sys.platform == "win32":
+        try:
+            from PySide6.QtCore import QLibraryInfo
+            tls = Path(QLibraryInfo.path(
+                QLibraryInfo.LibraryPath.PluginsPath)) / "tls"
+            have = sorted(p.stem for p in tls.glob("*.dll"))
+        except Exception as exc:  # noqa: BLE001
+            have, tls = [], f"({exc})"
+        print(f"  TLS (Qt)       : {', '.join(have) or 'none'}  {tls}")
+        if is_frozen() and ("qopensslbackend" in have
+                            or "qschannelbackend" not in have):
+            problems.append("Qt TLS backend")
 
     if problems:
         print(f"\nNOT OK — missing: {', '.join(problems)}")
@@ -432,7 +511,7 @@ def main() -> int:
     from views.tooltips import WrappingToolTips
     tooltips = WrappingToolTips(app)
     app.installEventFilter(tooltips)
-    # The experimental Rust engine: if the last start with it on never
+    # The Rust engine: if the last start with it on never
     # drew its first frame, this one goes back to the normal engine (and
     # says so below); --python-engine does it for one run.
     from core import _native
@@ -498,10 +577,13 @@ def main() -> int:
         conn = server.nextPendingConnection()
         if conn is None:
             return
+        path = ""
         if conn.waitForReadyRead(300):
             path = bytes(conn.readAll()).decode("utf-8", "replace").strip()
-            if path:
-                _open_document_in(window, Path(path))
+        # ACK BEFORE opening: the launcher waits for it only 1.5 s and then
+        # starts a window of its own. Opening may ask about unsaved changes
+        # (#956) or take longer than that on a big model, and the file then
+        # came up twice, here and in a second window (round Windows 0.5.11).
         conn.write(b"ok\n")            # ACK so the caller knows we are alive
         conn.flush()
         conn.waitForBytesWritten(300)
@@ -509,6 +591,9 @@ def main() -> int:
         window.show()
         window.raise_()
         window.activateWindow()
+        if path:
+            from PySide6.QtCore import QTimer as _Timer
+            _Timer.singleShot(0, lambda: _open_document_in(window, Path(path)))
 
     if server is not None:
         server.newConnection.connect(_handle_second_launch)
@@ -532,10 +617,10 @@ def main() -> int:
         from PySide6.QtWidgets import QMessageBox
         from core.i18n import tr
         QTimer.singleShot(0, lambda: QMessageBox.information(
-            window, tr("Rust engine (experimental)"),
-            tr("IngeTrazo did not open the last time with the experimental "
-               "Rust engine on, so it is back on the normal engine. You can "
-               "turn it on again in Preferences ▸ General.")))
+            window, tr("Rust engine"),
+            tr("IngeTrazo did not open the last time with the Rust engine "
+               "on, so it is back on the Python engine. You can turn it on "
+               "again in Preferences ▸ General.")))
 
     def _after_first_frame():
         # The plugins' setup, now that the window is up (#440) — and only

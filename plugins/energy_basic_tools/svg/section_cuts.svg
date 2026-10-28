@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="section_cuts-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="section_cuts-title">Zobrazit řezy</title>
+  <path d="M4 6H28V27H4ZM4 17H12M21 17H28" fill="none" stroke="#252B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M16 3V30" fill="none" stroke="#3288DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 3"/><path d="M12 10V24M21 10V24" fill="none" stroke="#3288DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

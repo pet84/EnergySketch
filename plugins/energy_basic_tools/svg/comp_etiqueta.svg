@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="comp_etiqueta-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="comp_etiqueta-title">Značka / štítek</title>
+  <path d="M3 12 12 3H28V20L19 29Z" fill="none" stroke="#252B33" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /><circle cx="21" cy="10" r="2.5" fill="none" stroke="#3288DF" stroke-width="2"/><path d="M11 16 19 24" fill="none" stroke="#3288DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

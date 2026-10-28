@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="archcontrol_csv_rp-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="archcontrol_csv_rp-title">Export renovačního pasu</title>
+  <path d="M7 3H20L26 9V29H7ZM20 3V10H26" fill="none" stroke="#252B33" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" /><path d="M11 17 15 13 19 17M12 17V22H18V17" fill="none" stroke="#252B33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M17 25 21 28 28 19" fill="none" stroke="#3288DF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

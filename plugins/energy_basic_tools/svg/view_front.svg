@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="view_front-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="view_front-title">Pohled zepředu</title>
+  <path d="M3 14 16 3 29 14M7 12V28H25V12" fill="none" stroke="#252B33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" /><rect x="13" y="17" width="6" height="11" rx="0" fill="#3288DF" stroke="#3288DF" stroke-width="1.8"/>
+</svg>

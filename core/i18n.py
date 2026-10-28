@@ -30,17 +30,27 @@ _I18N_DIR = app_root() / "i18n"
 LANGUAGE_NAMES = {"cs": "Čeština", "en": "English", "es": "Español",
                   "pt-BR": "Português (Brasil)", "zh-CN": "简体中文", "it": "Italiano",
                   "id": "Bahasa Indonesia", "fr": "Français", "de": "Deutsch",
-                  "pl": "Polski", "ru": "Русский"}
+                  "pl": "Polski", "ru": "Русский", "vi": "Tiếng Việt",
+                  "lo": "ລາວ", "th": "ไทย",
+                  "ja": "日本語", "ko": "한국어"}
 
 _catalog: dict[str, str] = {}
 _lang = "en"
 
 
+#: Catalogues that ship but are not offered yet. Lao (#850): on Windows the
+#: interface font has no Lao, and its vowel and tone marks were drawn apart
+#: from their consonants (Windows round 0.5.11); back once that is fixed.
+HIDDEN_LANGUAGES = frozenset({"lo"})
+
+
 def available_languages() -> list[str]:
-    """Language codes with a JSON file in ``i18n/`` (e.g. ``["en", "es"]``)."""
+    """Language codes with a JSON file in ``i18n/`` (e.g. ``["en", "es"]``),
+    less :data:`HIDDEN_LANGUAGES`."""
     if not _I18N_DIR.is_dir():
         return ["en"]
-    return sorted(p.stem for p in _I18N_DIR.glob("*.json"))
+    return sorted(p.stem for p in _I18N_DIR.glob("*.json")
+                  if p.stem not in HIDDEN_LANGUAGES)
 
 
 def set_language(lang: str) -> None:

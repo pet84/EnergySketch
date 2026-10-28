@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="dimension_chain-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="dimension_chain-title">Řetězová kóta</title>
+  <path d="M4 7V27M16 7V27M28 7V27" fill="none" stroke="#252B33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M4 21H28M1 24 7 18M13 24 19 18M25 24 31 18" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="dimension_baseline-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="dimension_baseline-title">Kóta od základny</title>
+  <path d="M5 4V28M16 12V28M27 4V28" fill="none" stroke="#252B33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M5 21H16M5 9H27M2 12 8 6M24 12 30 6M2 24 8 18M13 24 19 18" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

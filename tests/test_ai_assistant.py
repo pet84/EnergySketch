@@ -199,6 +199,43 @@ def test_failed_recipe_leaves_no_orphan_groups():
         win.close()
 
 
+def test_failed_recipe_restores_deleted_groups_layers_and_history():
+    from views.main_window import MainWindow
+
+    win = MainWindow()
+    try:
+        vp, scope = win.viewport, {"__name__": "__ai__"}
+        for name in ("First", "Second", "Redo"):
+            result = ai.run_transactional(
+                vp, f"box((0, 0, 0), (1, 1, 1), name={name!r})", scope)
+            assert result["error"] is None
+        assert vp.history.undo()
+        scene = vp.scene
+        groups, layers = scene.groups, scene.layers
+        before_groups, before_layers = list(groups), list(layers)
+        undo, redo = list(vp.history.undo_stack), list(vp.history.redo_stack)
+
+        result = ai.run_transactional(vp, (
+            "groups.pop(0)\n"
+            "groups.reverse()\n"
+            "box((0, 0, 0), (2, 2, 2), name='Discarded')\n"
+            "layers.clear()\n"
+            "raise ValueError('rollback deletion')"), scope)
+
+        assert result["error"] is not None and not result["changed"]
+        assert scene.groups is groups and scope["groups"] is groups
+        assert scene.layers is layers and scope["layers"] is layers
+        assert groups == before_groups
+        assert layers == before_layers
+        assert vp.history.undo_stack == undo
+        assert vp.history.redo_stack == redo
+        assert vp.history.redo()
+        assert [g.name for g in scene.groups][-3:] == ["First", "Second", "Redo"]
+    finally:
+        win._saved_version = win.viewport.scene.version
+        win.close()
+
+
 def test_supports_vision_by_provider_or_model():
     assert ai.supports_vision("anthropic", "claude-sonnet-5")
     assert ai.supports_vision("gemini", "gemini-2.5-flash")
@@ -652,6 +689,42 @@ def test_list_models_filters_and_strips(monkeypatch):
     ai.list_models("anthropic", "sk-ant-k")
     assert "api.anthropic.com/v1/models" in calls["url"]
     assert calls["headers"]["x-api-key"] == "sk-ant-k"
+
+
+def test_panel_builds_without_fixed_font_lookup(monkeypatch):
+    # Flatpak (#279): resolving QFontDatabase.FixedFont walks a host
+    # fontconfig fallback and can segfault while the panel is built. The
+    # chat must come up on the inherited application font instead.
+    from PySide6.QtGui import QFontDatabase
+    from plugins.ai_assistant import AsistentePanel
+
+    original = QFontDatabase.systemFont
+
+    def reject_fixed(which):
+        if which == QFontDatabase.FixedFont:
+            raise RuntimeError("FixedFont lookup must not run")
+        return original(which)
+
+    monkeypatch.setattr(QFontDatabase, "systemFont", reject_fixed)
+
+    panel = AsistentePanel(object())
+    try:
+        chat, prompt = panel._chat, panel._input
+        assert chat.isReadOnly()
+        chat.setPlainText("respuesta")
+        assert chat.toPlainText() == "respuesta"
+        prompt.setText("dibuja un muro")
+        assert prompt.text() == "dibuja un muro"
+
+        app_font = QApplication.instance().font()
+        for widget in (chat, prompt):
+            assert widget.font().family() == app_font.family()
+            assert widget.fontMetrics().lineSpacing() > 0
+        line = prompt.fontMetrics().lineSpacing()
+        assert prompt.minimumHeight() == 2 * line + 12
+    finally:
+        panel.deleteLater()
+        QApplication.instance().processEvents()
 
 
 def test_chat_colors_follow_theme():

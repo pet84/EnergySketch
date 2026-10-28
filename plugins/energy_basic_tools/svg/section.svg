@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="section-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="section-title">Řezová rovina</title>
+  <path d="M6 8 23 3V24L6 29ZM6 8 11 11V31M23 3 28 7V28L11 31" fill="none" stroke="#252B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M17 5V26" fill="none" stroke="#3288DF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /><path d="M16 10 25 15 16 20Z" fill="#3288DF"/>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="protractor-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="protractor-title">Úhloměr</title>
+  <path d="M3 25A13 13 0 0 1 29 25H3Z" fill="none" stroke="#252B33" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M6 19 8 20M10 14.8 11.2 17M16 12V15M22 14.8 20.8 17M26 19 24 20" fill="none" stroke="#252B33" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M16 25 22 15" fill="none" stroke="#3288DF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /><circle cx="16" cy="25" r="2.5" fill="#3288DF"/>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="dimension-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="dimension-title">Kóta</title>
+  <path d="M5 5V25M27 5V25" fill="none" stroke="#252B33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M5 20H27" fill="none" stroke="#3288DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M2 23 8 17M24 23 30 17" fill="none" stroke="#3288DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M13 5H19L14 10H18L19 11V13H13" fill="none" stroke="#252B33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

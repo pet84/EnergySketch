@@ -265,6 +265,16 @@ def render_check(args):
             errors = window._extension_load_errors
             report["extension_load_errors"] = errors
             assert not errors, str(errors)
+            from core._native import engine
+            report['engine'] = engine()
+            if os.environ.get('INGETRAZO_REQUIRE_RUST') == '1':
+                assert report['engine'] == 'Rust', 'Rust engine missing'
+            report['approved_icon_selection'] = approved_icons_check(window)
+            assert window.toolbars['layers'].actions(), 'Layers toolbar missing'
+            report['layers_toolbar'] = True
+            full_image = args.archenergy_render.with_name('upgrade-0511-window.png')
+            assert window.grab().save(str(full_image))
+            report['window_image'] = str(full_image)
             from PySide6.QtWidgets import QDockWidget
             toolbar = window._archcontrol_toolbar
             assert toolbar.isVisibleTo(window), "ArchControl toolbar is hidden"
@@ -331,6 +341,28 @@ def render_check(args):
     QTimer.singleShot(45000, lambda: finish("Rendering timed out"))
     app.exec()
     return 0 if report["ok"] else 1
+
+
+def approved_icons_check(window):
+    """Check the actual post-startup renderers, including native restoration."""
+    from collections import Counter
+    from core.paths import app_root
+    from views import icons
+    directory = app_root() / 'plugins/energy_basic_tools'
+    choices = json.loads((directory / 'selection.json').read_text(encoding='utf-8'))['choices']
+    mapping = json.loads((directory / 'icons.json').read_text(encoding='utf-8'))
+    assert len({item['key'] for item in choices}) == 114
+    for item in choices:
+        key = item['key']
+        if item['variant'] == 'energysketch':
+            assert icons._DRAW[key] is icons._energy_builtin_draw[key], key
+        else:
+            template = (directory / 'svg' / (mapping[key] + '.svg')).read_text(encoding='utf-8')
+            assert icons._DRAW[key].__defaults__ == (template,), key
+        assert not icons.tool_icon(key).pixmap(24,24).isNull(), key
+    assert len(window.toolbars['draw']._energy_buttons) == 10
+    assert len(window.toolbars['annotate']._energy_buttons) == 6
+    return dict(Counter(item['variant'] for item in choices))
 
 
 def eyedropper_check(window):

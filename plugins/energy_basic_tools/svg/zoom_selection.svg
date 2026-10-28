@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="zoom_selection-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="zoom_selection-title">Přiblížit výběr</title>
+  <path d="M4 12V4H12M20 4H28V12M4 20V28H12M20 28H28V20" fill="none" stroke="#3288DF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /><rect x="11" y="11" width="10" height="10" rx="0" fill="#3288DF" stroke="#252B33" stroke-width="1.8"/>
+</svg>

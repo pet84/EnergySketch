@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="pie-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="pie-title">Kruhová výseč</title>
+  <path d="M6 23 11 6M6 23 28 17" fill="none" stroke="#252B33" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" /><path d="M11 6A20 20 0 0 1 28 17" fill="none" stroke="#3288DF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /><circle cx="6" cy="23" r="2.5" fill="#3288DF"/><circle cx="11" cy="6" r="2.5" fill="#3288DF"/><circle cx="28" cy="17" r="2.5" fill="#3288DF"/>
+</svg>

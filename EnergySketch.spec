@@ -140,6 +140,10 @@ hiddenimports += collect_submodules('ezdxf')
 # manifold3d (Solid Tools) is imported inside core.solids' functions — one
 # self-contained native extension module (libstdc++/libm/libc only).
 hiddenimports += ['manifold3d', 'core.solids', 'tools.solid_tools']
+# truststore (#783): Python's HTTPS on Windows verifies through the system
+# verifier; imported inside core.tls.https_context, and without it the
+# extension manager silently falls back to Python's own store.
+hiddenimports += ['truststore']
 # Copy/Paste between windows (#76): imported lazily by the viewport and
 # the main window.
 hiddenimports += ['formats.clip']
@@ -289,6 +293,12 @@ for _source in Path('plugins/archcontrol').rglob('*'):
     if _source.is_file() and '__pycache__' not in _source.parts:
         datas.append((str(_source), str(_source.parent)))
 hiddenimports += collect_submodules('plugins.archcontrol')
+# Keep the approved 114-way native/Codex/Arrow selection across rebuilds.
+datas += [('plugins/energy_basic_tools', 'plugins/energy_basic_tools')]
+hiddenimports += ['PySide6.QtSvg']
+if sys.platform == 'win32':
+    assert (ROOT / 'vendor/native-windows-0511/ingetrazo_core.pyd').is_file(), 'Run scripts/archenergy_fetch_native.py first'
+    hiddenimports += ['ingetrazo_core']
 # The private reader loads physical .py files; do not bundle the writer scaffold.
 from PySide6.QtCore import QLibraryInfo
 _qt_translations = Path(QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath))
@@ -296,7 +306,7 @@ datas += [(str(_qt_translations / 'qtbase_cs.qm'), 'PySide6/translations')]
 # Dependency license notices travel with the internal distribution.
 from importlib import metadata
 for _dependency in ('PySide6', 'PySide6-Essentials', 'PySide6-Addons', 'shiboken6',
-                    'numpy', 'openskp', 'ezdxf', 'manifold3d', 'mapbox-earcut'):
+                    'numpy', 'openskp', 'ezdxf', 'manifold3d', 'mapbox-earcut', 'truststore'):
     _dist = metadata.distribution(_dependency)
     for _file in _dist.files or ():
         if ('license' in str(_file).lower() or 'copying' in str(_file).lower()) and str(_file).lower().endswith(('.txt', '.md', 'license', 'copying')):
@@ -306,7 +316,7 @@ for _dependency in ('PySide6', 'PySide6-Essentials', 'PySide6-Addons', 'shiboken
 
 a = Analysis(
     ['energysketch.py'],
-    pathex=[str(ROOT)],
+    pathex=[str(ROOT), str(ROOT / 'vendor/native-windows-0511')],
     binaries=_earcut_libs,
     datas=datas,
     hiddenimports=hiddenimports,
@@ -366,6 +376,24 @@ if sys.platform == 'win32':
                   if not (Path(b[0]).name.lower() in _DWG_DLLS
                           and Path(b[0]).parent == Path('.'))]
 
+# Qt's HTTPS on Windows goes through Windows' own TLS (schannel), never
+# OpenSSL. Qt looks for libssl-3-x64.dll beside the .exe, then in System32,
+# and reaches the copy in _internal only through PATH — so a machine where
+# another program left OpenSSL 3.6 in System32 got that libssl, linked
+# against OUR libcrypto 3.5, and the extension manager died on «CRYPTO_calloc
+# not found» (#564). Choosing schannel in code is too late: asking Qt which
+# backends exist already loads OpenSSL. Without the plugin Qt picks
+# schannel. Python's own ssl uses libssl-3.dll / libcrypto-3.dll (no -x64)
+# and stays.
+if sys.platform == 'win32':
+    _QT_OPENSSL = {'qopensslbackend.dll', 'libssl-3-x64.dll',
+                   'libcrypto-3-x64.dll'}
+    _before = len(a.binaries)
+    a.binaries = [b for b in a.binaries
+                  if Path(b[0]).name.lower() not in _QT_OPENSSL]
+    print('spec: dropped %d OpenSSL files of Qt (#564)'
+          % (_before - len(a.binaries)))
+
 # Qt 6.11 Windows imports the OS ICU ABI. A Poppler ICU on the build
 # host's PATH has the same DLL name but versioned exports; bundling it makes
 # QtWidgets fail with ERROR_PROC_NOT_FOUND. Use Windows' own ICU, as the wheel does.
@@ -373,7 +401,7 @@ if sys.platform == 'win32':
     a.binaries = [b for b in a.binaries
                   if Path(b[0]).name.lower() not in {'icuuc.dll', 'icudt78.dll'}]
 
-pyz = PYZ(a.pure, a.zipped_data)
+pyz =PYZ(a.pure, a.zipped_data)
 
 icon = None
 if sys.platform == 'win32':

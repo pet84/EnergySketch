@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="arr_lock-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="arr_lock-title">Uzamknout</title>
+  <rect x="6" y="14" width="20" height="15" rx="2" fill="none" stroke="#252B33" stroke-width="2.25"/><path d="M11 14V8A5 5 0 0 1 21 8V14" fill="none" stroke="#252B33" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /><circle cx="16" cy="21" r="2.3" fill="#3288DF"/><path d="M16 21V25" fill="none" stroke="#3288DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

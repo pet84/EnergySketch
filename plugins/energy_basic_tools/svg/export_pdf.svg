@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="export_pdf-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="export_pdf-title">Export PDF</title>
+  <path d="M7 3H20L26 9V29H7ZM20 3V10H26" fill="none" stroke="#252B33" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" /><path d="M12 20H29" fill="none" stroke="#3288DF" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M24 14 31 20 24 26Z" fill="#3288DF"/><path d="M11 12H16" fill="none" stroke="#3288DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

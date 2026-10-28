@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="text3d-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="text3d-title">3D text</title>
+  <path d="M8 25 16 3H22L30 25H24L22.5 20H15.5L14 25ZM17 15H21L19 8Z" fill="#3288DF"/><path d="M12 6 16 3H22L18 6ZM18 6 22 3 30 25 26 28ZM20 28 24 25H30L26 28ZM13 18 17 15H21L17 18Z" fill="#3288DF"/><path d="M4 28 12 6H18L26 28H20L18.5 23H11.5L10 28ZM13 18H17L15 11Z" fill="#252B33"/>
+</svg>

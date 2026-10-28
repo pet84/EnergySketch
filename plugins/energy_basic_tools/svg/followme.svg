@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="followme-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="followme-title">Táhnout po dráze</title>
+  <path d="M5 26V15Q5 7 13 7H25" fill="none" stroke="#252B33" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" /><path d="M5 26V15Q5 7 13 7H25" fill="none" stroke="#3288DF" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M24 1 31 7 24 13Z" fill="#3288DF"/><path d="M1 24 5 22 9 24V29L5 31 1 29Z" fill="none" stroke="#252B33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

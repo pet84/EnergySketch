@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="paint-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="paint-title">Materiál / výplň</title>
+  <path d="M5 14 17 3 27 13 15 25ZM9 10 20 21M9 9V5Q9 1 13 2L22 10" fill="none" stroke="#252B33" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" /><path d="M27 18C27 18 22 24 22 26A4 4 0 0 0 30 26C30 24 27 18 27 18Z" fill="#3288DF"/>
+</svg>

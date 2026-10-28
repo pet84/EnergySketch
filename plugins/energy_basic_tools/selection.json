@@ -1,0 +1,921 @@
+{
+  "schema": "energysketch-icon-selection",
+  "version": 1,
+  "updatedAt": "2026-10-28T09:33:11.828938+00:00",
+  "selectedCount": 114,
+  "totalIcons": 114,
+  "choices": [
+    {
+      "key": "line",
+      "name": "Úsečka",
+      "variant": "arrow",
+      "sourceLabel": "Arrow 2 Telos",
+      "renderer": "svg",
+      "asset": "arrow-basic12/line.svg"
+    },
+    {
+      "key": "freehand",
+      "name": "Volná čára",
+      "variant": "arrow",
+      "sourceLabel": "Arrow 2 Telos",
+      "renderer": "svg",
+      "asset": "arrow-basic12/freehand.svg"
+    },
+    {
+      "key": "rectangle",
+      "name": "Obdélník",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/rectangle.svg"
+    },
+    {
+      "key": "rotated_rect",
+      "name": "Otočený obdélník",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/rotated-rectangle.svg"
+    },
+    {
+      "key": "circle",
+      "name": "Kružnice",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/circle.svg"
+    },
+    {
+      "key": "polygon",
+      "name": "Mnohoúhelník",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/polygon.svg"
+    },
+    {
+      "key": "center_arc",
+      "name": "Oblouk ze středu",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arc-center.svg"
+    },
+    {
+      "key": "arc",
+      "name": "Dvoubodový oblouk",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "arc3",
+      "name": "Tříbodový oblouk",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arc-3-point.svg"
+    },
+    {
+      "key": "pie",
+      "name": "Kruhová výseč",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "rectangle_center",
+      "name": "Obdélník ze středu",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/rectangle_center.svg"
+    },
+    {
+      "key": "select",
+      "name": "Výběr",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "eraser",
+      "name": "Guma",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "paint",
+      "name": "Materiál / výplň",
+      "variant": "arrow",
+      "sourceLabel": "Arrow 2 Telos",
+      "renderer": "svg",
+      "asset": "arrow-trial/paint.svg"
+    },
+    {
+      "key": "eyedropper",
+      "name": "Kapátko",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "save",
+      "name": "Uložit",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "undo",
+      "name": "Zpět",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/undo.svg"
+    },
+    {
+      "key": "redo",
+      "name": "Znovu",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/redo.svg"
+    },
+    {
+      "key": "refresh",
+      "name": "Obnovit",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "image",
+      "name": "Vložit obrázek",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/image.svg"
+    },
+    {
+      "key": "move",
+      "name": "Přesun",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "pushpull",
+      "name": "Vytažení / zatlačení",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/pushpull.svg"
+    },
+    {
+      "key": "rotate",
+      "name": "Otočení",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/rotate.svg"
+    },
+    {
+      "key": "scale",
+      "name": "Změna měřítka",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/scale.svg"
+    },
+    {
+      "key": "flip",
+      "name": "Zrcadlení",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/flip.svg"
+    },
+    {
+      "key": "followme",
+      "name": "Táhnout po dráze",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "offset",
+      "name": "Odsazení",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/offset.svg"
+    },
+    {
+      "key": "fillet",
+      "name": "Zaoblení",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/fillet.svg"
+    },
+    {
+      "key": "tape",
+      "name": "Měřicí pásmo",
+      "variant": "arrow",
+      "sourceLabel": "Arrow 2 Telos",
+      "renderer": "svg",
+      "asset": "arrow-basic12/tape.svg"
+    },
+    {
+      "key": "protractor",
+      "name": "Úhloměr",
+      "variant": "arrow",
+      "sourceLabel": "Arrow 2 Telos",
+      "renderer": "svg",
+      "asset": "arrow-basic12/protractor.svg"
+    },
+    {
+      "key": "dimension",
+      "name": "Kóta",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/dimension.svg"
+    },
+    {
+      "key": "dimension_chain",
+      "name": "Řetězová kóta",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/dimension_chain.svg"
+    },
+    {
+      "key": "dimension_baseline",
+      "name": "Kóta od základny",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/dimension_baseline.svg"
+    },
+    {
+      "key": "dimension_radius",
+      "name": "Poloměrová kóta",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/dimension_radius.svg"
+    },
+    {
+      "key": "dimension_diameter",
+      "name": "Průměrová kóta",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/dimension_diameter.svg"
+    },
+    {
+      "key": "dimension_angular",
+      "name": "Úhlová kóta",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/dimension_angular.svg"
+    },
+    {
+      "key": "dimension_style",
+      "name": "Styl kót",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/dimension_style.svg"
+    },
+    {
+      "key": "text",
+      "name": "Text / popiska",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/text.svg"
+    },
+    {
+      "key": "text3d",
+      "name": "3D text",
+      "variant": "arrow",
+      "sourceLabel": "Arrow 2 Telos",
+      "renderer": "svg",
+      "asset": "arrow-trial/text3d.svg"
+    },
+    {
+      "key": "geopath",
+      "name": "Trasa",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/geopath.svg"
+    },
+    {
+      "key": "orbit",
+      "name": "Obíhání modelu",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "pan",
+      "name": "Posun pohledu",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "zoom",
+      "name": "Lupa",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/zoom.svg"
+    },
+    {
+      "key": "zoom_window",
+      "name": "Přiblížit okno",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/zoom_window.svg"
+    },
+    {
+      "key": "zoom_extents",
+      "name": "Zobrazit vše",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/zoom_extents.svg"
+    },
+    {
+      "key": "zoom_selection",
+      "name": "Přiblížit výběr",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/zoom_selection.svg"
+    },
+    {
+      "key": "position_camera",
+      "name": "Umístit kameru",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "walk",
+      "name": "Chůze",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "look_around",
+      "name": "Rozhlížení",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/look_around.svg"
+    },
+    {
+      "key": "first_person",
+      "name": "Pohled první osoby",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/first_person.svg"
+    },
+    {
+      "key": "view_iso",
+      "name": "Izometrie",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/view_iso.svg"
+    },
+    {
+      "key": "view_top",
+      "name": "Pohled shora",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "view_bottom",
+      "name": "Pohled zdola",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "view_front",
+      "name": "Pohled zepředu",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "view_back",
+      "name": "Pohled zezadu",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "view_right",
+      "name": "Pohled zprava",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "view_left",
+      "name": "Pohled zleva",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "proj_parallel",
+      "name": "Rovnoběžná projekce",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "proj_perspective",
+      "name": "Perspektiva",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "proj_two_point",
+      "name": "Dvoubodová perspektiva",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "section",
+      "name": "Řezová rovina",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "section_planes",
+      "name": "Zobrazit řezové roviny",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/section_planes.svg"
+    },
+    {
+      "key": "section_cuts",
+      "name": "Zobrazit řezy",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "section_fill",
+      "name": "Výplň řezů",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/section_fill.svg"
+    },
+    {
+      "key": "styles",
+      "name": "Styly zobrazení",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/styles.svg"
+    },
+    {
+      "key": "shadows",
+      "name": "Stíny",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/shadows.svg"
+    },
+    {
+      "key": "outer_shell",
+      "name": "Vnější obal",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "solid_union",
+      "name": "Sjednocení těles",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "solid_subtract",
+      "name": "Odečtení těles",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "solid_intersect",
+      "name": "Průnik těles",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "solid_trim",
+      "name": "Oříznutí tělesa",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "solid_split",
+      "name": "Rozdělení těles",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "archcontrol_panel",
+      "name": "Panel ArchControl",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/archcontrol_panel.svg"
+    },
+    {
+      "key": "archcontrol_live",
+      "name": "Propojení ASTRA LIVE",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/archcontrol_live.svg"
+    },
+    {
+      "key": "archcontrol_materials",
+      "name": "Materiály ArchControl",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/archcontrol_materials.svg"
+    },
+    {
+      "key": "archcontrol_zones",
+      "name": "Zóny ArchControl",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/archcontrol_zones.svg"
+    },
+    {
+      "key": "archcontrol_material_new",
+      "name": "Nový materiál",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "archcontrol_windows",
+      "name": "Okna a otvory",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "archcontrol_library_import",
+      "name": "Import knihovny materiálů",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "archcontrol_library_export",
+      "name": "Export knihovny materiálů",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "archcontrol_csv_complex",
+      "name": "Export přehledu konstrukcí",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "archcontrol_csv_energy",
+      "name": "Export energetických dat",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "archcontrol_csv_rp",
+      "name": "Export renovačního pasu",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/archcontrol_csv_rp.svg"
+    },
+    {
+      "key": "archcontrol_north",
+      "name": "Orientace severu",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/archcontrol_north.svg"
+    },
+    {
+      "key": "archcontrol_help",
+      "name": "Nápověda ArchControl",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "comp_vista",
+      "name": "Vložit pohled modelu",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/comp_vista.svg"
+    },
+    {
+      "key": "comp_norte",
+      "name": "Severka výkresu",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "comp_leyenda",
+      "name": "Legenda",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "comp_escala",
+      "name": "Grafické měřítko",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "comp_cajetin",
+      "name": "Razítko výkresu",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/comp_cajetin.svg"
+    },
+    {
+      "key": "comp_flecha",
+      "name": "Šipka",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/comp_flecha.svg"
+    },
+    {
+      "key": "comp_terreno",
+      "name": "Profil terénu",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "comp_etiqueta",
+      "name": "Značka / štítek",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "comp_perfil",
+      "name": "Výškový profil",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "comp_nivel",
+      "name": "Výšková kóta",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/comp_nivel.svg"
+    },
+    {
+      "key": "comp_llamada",
+      "name": "Odkazová čára",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/comp_llamada.svg"
+    },
+    {
+      "key": "export_pdf",
+      "name": "Export PDF",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/export_pdf.svg"
+    },
+    {
+      "key": "print_preview",
+      "name": "Náhled tisku",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/print_preview.svg"
+    },
+    {
+      "key": "arr_left",
+      "name": "Zarovnat vlevo",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_left.svg"
+    },
+    {
+      "key": "arr_right",
+      "name": "Zarovnat vpravo",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_right.svg"
+    },
+    {
+      "key": "arr_top",
+      "name": "Zarovnat nahoru",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_top.svg"
+    },
+    {
+      "key": "arr_bottom",
+      "name": "Zarovnat dolů",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_bottom.svg"
+    },
+    {
+      "key": "arr_hcenter",
+      "name": "Zarovnat na střed vodorovně",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_hcenter.svg"
+    },
+    {
+      "key": "arr_vcenter",
+      "name": "Zarovnat na střed svisle",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_vcenter.svg"
+    },
+    {
+      "key": "arr_dist_h",
+      "name": "Rozmístit vodorovně",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_dist_h.svg"
+    },
+    {
+      "key": "arr_dist_v",
+      "name": "Rozmístit svisle",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_dist_v.svg"
+    },
+    {
+      "key": "arr_duplicate",
+      "name": "Duplikovat",
+      "variant": "energysketch",
+      "sourceLabel": "EnergySketch",
+      "renderer": "builtin",
+      "asset": null
+    },
+    {
+      "key": "arr_group",
+      "name": "Seskupit",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_group.svg"
+    },
+    {
+      "key": "arr_ungroup",
+      "name": "Zrušit seskupení",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_ungroup.svg"
+    },
+    {
+      "key": "arr_lock",
+      "name": "Uzamknout",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/arr_lock.svg"
+    },
+    {
+      "key": "side_collapse",
+      "name": "Sbalit panel",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/side_collapse.svg"
+    },
+    {
+      "key": "side_expand",
+      "name": "Rozbalit panel",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/side_expand.svg"
+    },
+    {
+      "key": "overflow_h",
+      "name": "Další nástroje vodorovně",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/overflow_h.svg"
+    },
+    {
+      "key": "overflow_v",
+      "name": "Další nástroje svisle",
+      "variant": "codex",
+      "sourceLabel": "Návrh Codex",
+      "renderer": "svg",
+      "asset": "svg/overflow_v.svg"
+    }
+  ]
+}

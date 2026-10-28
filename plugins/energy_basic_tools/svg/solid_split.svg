@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="solid_split-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="solid_split-title">Rozdělení těles</title>
+  <path d="M2 4H16V11H10V20H2ZM21 14H29V29H15V23H21ZM13 13H18V20H13Z" fill="none" stroke="#252B33" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M11 3 28 30" fill="none" stroke="#3288DF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 3"/>
+</svg>

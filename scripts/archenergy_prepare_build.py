@@ -2,6 +2,7 @@
 # © 2026 ArchEnergy s.r.o.
 """Derive a separate Windows build spec without editing upstream packaging."""
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -18,6 +19,7 @@ def main():
         ("icon=icon,\n)", "icon=icon,\n    version=str(ROOT / 'packaging/energysketch-mcp-version.txt'),\n)", 1),
         ("[*Path('plugins').glob('*.py'),", "[*Path('plugins').rglob('*.py'),", 1),
         ("collect_data_files('openskp')", "collect_data_files('openskp', include_py_files=True)", 1),
+        ("pathex=[str(ROOT)],", "pathex=[str(ROOT), str(ROOT / 'vendor/native-windows-0511')],", 1),
     ]
     for old, new, count in changes:
         if spec.count(old) < count:
@@ -33,6 +35,12 @@ for _source in Path('plugins/archcontrol').rglob('*'):
     if _source.is_file() and '__pycache__' not in _source.parts:
         datas.append((str(_source), str(_source.parent)))
 hiddenimports += collect_submodules('plugins.archcontrol')
+# Keep the approved 114-way native/Codex/Arrow selection across rebuilds.
+datas += [('plugins/energy_basic_tools', 'plugins/energy_basic_tools')]
+hiddenimports += ['PySide6.QtSvg']
+if sys.platform == 'win32':
+    assert (ROOT / 'vendor/native-windows-0511/ingetrazo_core.pyd').is_file(), 'Run scripts/archenergy_fetch_native.py first'
+    hiddenimports += ['ingetrazo_core']
 # The private reader loads physical .py files; do not bundle the writer scaffold.
 from PySide6.QtCore import QLibraryInfo
 _qt_translations = Path(QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath))
@@ -40,7 +48,7 @@ datas += [(str(_qt_translations / 'qtbase_cs.qm'), 'PySide6/translations')]
 # Dependency license notices travel with the internal distribution.
 from importlib import metadata
 for _dependency in ('PySide6', 'PySide6-Essentials', 'PySide6-Addons', 'shiboken6',
-                    'numpy', 'openskp', 'ezdxf', 'manifold3d', 'mapbox-earcut'):
+                    'numpy', 'openskp', 'ezdxf', 'manifold3d', 'mapbox-earcut', 'truststore'):
     _dist = metadata.distribution(_dependency)
     for _file in _dist.files or ():
         if ('license' in str(_file).lower() or 'copying' in str(_file).lower()) and str(_file).lower().endswith(('.txt', '.md', 'license', 'copying')):
@@ -52,9 +60,10 @@ for _dependency in ('PySide6', 'PySide6-Essentials', 'PySide6-Addons', 'shiboken
     if spec.count(marker) != 2:  # GUI and mcp_a contain this suffix
         raise ValueError("Unexpected upstream Analysis structure")
     spec = spec.replace(marker, extra + "\n" + marker, 1)
-    marker = "pyz = PYZ(a.pure, a.zipped_data)"
-    if spec.count(marker) != 1:
+    matches = re.findall(r'^pyz\s*=\s*PYZ\(a\.pure(?:, a\.zipped_data)?\)$', spec, re.M)
+    if len(matches) != 1:
         raise ValueError("Upstream PYZ structure changed")
+    marker = matches[0]
     spec = spec.replace(marker, '''# Qt 6.11 Windows imports the OS ICU ABI. A Poppler ICU on the build
 # host's PATH has the same DLL name but versioned exports; bundling it makes
 # QtWidgets fail with ERROR_PROC_NOT_FOUND. Use Windows' own ICU, as the wheel does.

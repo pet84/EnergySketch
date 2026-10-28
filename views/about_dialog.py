@@ -27,11 +27,31 @@ from PySide6.QtWidgets import (
 from core.i18n import tr
 
 #: (name, what they gave — English source for tr(), link or "").
+#: Those who have given the most — a star beside their name, first in
+#: the roll (Marco, 18-10): measured by merged pull requests, reports and
+#: the work they carried, not by order of arrival.
+STARRED = frozenset({
+    "Pedro Caeiro",
+    "Gabriel Rodríguez Arregin",
+    "Félix Riestra",
+    "Rafael García Rodríguez",
+    "Ahsan Mehmood",
+})
+
 CONTRIBUTORS = [
     ("Pedro Caeiro",
      "Draftsman. Pull requests and dozens of issue reports from daily "
      "drafting work: much of how IngeTrazo draws today.",
      "https://github.com/pacaeiro"),
+    ("Gabriel Rodríguez Arregin",
+     "Architect. The units system, the Browser, Layers 2.0, the Solid "
+     "Inspector, Fillet 3D bevels, Bridge, Join Segments, Camera ▸ Axes, "
+     "cleaner exports and many everyday editing tools.",
+     "https://github.com/canalsecuario-blip"),
+    ("Félix Riestra",
+     "The macOS package: IngeTrazo for Mac. Components that come apart "
+     "(parts, cut list, exploded view) and the Extension API 2.",
+     "https://github.com/felixriestra"),
     ("Rafael García Rodríguez",
      "Draftsman and 3D reviewer. Filmed reviews of the whole program and "
      "the drafting standards for dimensions.",
@@ -43,13 +63,6 @@ CONTRIBUTORS = [
     ("dafrobozao",
      "Brazilian Portuguese translation of the interface.",
      "https://github.com/dafrobozao"),
-    ("Félix Riestra",
-     "The macOS package: IngeTrazo for Mac. Components that come apart "
-     "(parts, cut list, exploded view) and the Extension API 2.",
-     "https://github.com/felixriestra"),
-    ("Gabriel Rodríguez Arregin",
-     "Architect. Quick editing tools for everyday drafting.",
-     "https://github.com/canalsecuario-blip"),
     ("José Castro Basso (FADU–UDELAR)",
      "Architect and teacher of architectural representation. Two-point "
      "perspective, the current view as DXF, and the Levels extension.",
@@ -89,8 +102,142 @@ CONTRIBUTORS = [
      "Wrote down the Outliner: what a tree of nested groups needs.",
      "https://github.com/roymendezcastro"),
     ("kagehak",
-     "STL import and Simplify Mesh.",
+     "STL import, Simplify Mesh and the extension manager.",
      "https://github.com/kagehak"),
+    ("FG-RVT",
+     "Push/Pull usability: a preselected face arms the tool, the real "
+     "result previewed on split faces, the distance kept ready to "
+     "retype.",
+     "https://github.com/FG-RVT"),
+    ("Guy Wydouw",
+     "Fixes for macOS (text layout, frame colours) and faces kept the "
+     "right way round when erasing a dividing line.",
+     "https://github.com/GWydouw"),
+    ("Aaron Kern",
+     "German fixes, Zoom Extents that frames reference images, and tags "
+     "kept on groups imported from .skp.",
+     "https://github.com/Aaron1992"),
+    ("Alex Joedt",
+     "Keeps the German translation up to date.",
+     "https://github.com/alexjoedt"),
+    ("PESI3D",
+     "German translation of the interface.",
+     "https://github.com/PESI3D"),
+    ("Yann Steffan",
+     "French translation of the interface.",
+     "https://github.com/YannFR81"),
+    ("Piotr Szmitkowski",
+     "Polish translation of the interface.",
+     "https://github.com/jackalski"),
+    ("RomanErshow",
+     "Russian translation of the interface.",
+     "https://github.com/RomanErshow"),
+    ("vandang890615",
+     "Vietnamese translation of the interface.",
+     "https://github.com/vandang890615"),
+    ("BoneNI",
+     "Lao translation of the interface.",
+     "https://github.com/bounkirdni-2025"),
+    ("Prida Takon",
+     "Thai translation of the interface.",
+     "https://github.com/PRIDA-TAKON"),
+    ("ChangWoo Lee",
+     "Korean translation of the interface.",
+     "https://github.com/ultracat"),
+    ("nonasige-ui",
+     "Japanese translation of the interface.",
+     "https://github.com/nonasige-ui"),
+    ("Francis Rebouças",
+     "Sheet dimensions and level marks in the document's units, "
+     "dimensions that follow their object, and Push/Pull fixes.",
+     "https://github.com/francisreboucas"),
+    ("pkoska",
+     "Fixes for the location map, Move's rotation grips, typed values, "
+     "the Line tool, snapping, long thin rectangles, .skp thumbnails and "
+     "the extension manager's downloads on Windows.",
+     "https://github.com/pkoska"),
+    ("Kone Venkatesh",
+     "Fixes deep in the modelling core: windows cut at a box's corner, "
+     "lines over other edges, Follow Me's undo and splitting edges.",
+     "https://github.com/konevenkatesh"),
+    ("Clint Armstrong",
+     "A failed scripted import that gives back what it had removed.",
+     "https://github.com/clinta"),
+    ("nicolasmarc",
+     "DXF polyface and mesh entities imported as faces.",
+     "https://github.com/nicolasmarc"),
+    ("BastelBaus",
+     "DAE imports that keep the file's groups.",
+     "https://github.com/BastelBaus"),
+    ("David",
+     "The choice of tool cursor: the tool's icon, a crosshair or an "
+     "arrow.",
+     "https://github.com/Booshdag-io"),
+    ("Matt Van Horn",
+     "A fix for the AI Assistant crash in the Flatpak.",
+     "https://github.com/mvanhorn"),
+    ("Luis Romo",
+     "Offset with its distance live in the measurements box, ready to "
+     "retype.",
+     "https://github.com/luisfergromo"),
+    ("Victor Crespo",
+     "A confirmation before installing an extension nobody has reviewed, "
+     "and safer archives from outside.",
+     "https://github.com/vicc3d"),
+    ("APBureauEtude",
+     "OBJ and MTL files read and written as UTF-8 on every system.",
+     "https://github.com/APBureauEtude"),
+    ("SebWell",
+     "A cleaner macOS package.",
+     "https://github.com/SebWell"),
+    ("BlackFlash73",
+     "Exports that take colours with transparency.",
+     "https://github.com/blackflash73"),
+    ("borborborja",
+     "Documents with textual curve IDs open again.",
+     "https://github.com/borborborja"),
+    ("lelopes05",
+     "Sturdier value labels for extensions.",
+     "https://github.com/lelopes05"),
+    ("PINYO PATTANAWASANPORN",
+     "The fix for the base map that closed the program on Windows with "
+     "AMD graphics.",
+     "https://github.com/PINYOPATTANAWASANPORN"),
+    ("Orian Beltrame",
+     "Performance: hover with Line and Move up to twice as fast, the "
+     "pick index split into cells, and the interaction benchmark.",
+     "https://github.com/orianbsilva"),
+    ("jonson7777",
+     "Bug reports and requests from daily use: Push/Pull, Offset, "
+     "toolbars and the sidebars.",
+     "https://github.com/jonson7777"),
+    ("tomlai-git",
+     "Reports on installation, the extension manager, shortcuts and "
+     "curved surfaces.",
+     "https://github.com/tomlai-git"),
+    ("arthurarquitetoamb",
+     "Feature requests from modelling practice: 3D text, copies along "
+     "Follow Me, points and Push/Pull on lines.",
+     "https://github.com/arthurarquitetoamb"),
+    ("tony1233200",
+     "Fixes for reopened dimensions, New's materials, the extension "
+     "manager, face areas, textures on rotated groups, unnamed groups "
+     "and .skp scale, and a faster viewer.",
+     "https://github.com/tony1233200"),
+    ("Bogdan Demchenko",
+     "Extension toolbars back in place at start-up, the Rectangle's "
+     "preview, Measure from the line under the cursor, Offset's "
+     "reference and pool water.",
+     "https://github.com/hamzah1985"),
+    ("Alexis",
+     "Ctrl+Enter in the leader-text dialog.",
+     "https://github.com/bernalalexis-try"),
+    ("SPMech",
+     "Reports and requests from mechanical modelling.",
+     "https://github.com/SPMech"),
+    ("xcd-droid",
+     "Reports on snapping, the Rectangle and pasting.",
+     "https://github.com/xcd-droid"),
 ]
 
 #: Roll speed: pixels per tick, and the tick.
@@ -103,6 +250,8 @@ def _credits_html(people) -> str:
     for name, role, link in people:
         who = (f"<a href='{link}'><b>{name}</b></a>" if link
                else f"<b>{name}</b>")
+        if name in STARRED:
+            who = f"<span style='color:#e8a33d'>★</span> {who}"
         rows.append(f"<p style='margin:0 0 10px 0'>{who}<br>{tr(role)}</p>")
     return "".join(rows)
 

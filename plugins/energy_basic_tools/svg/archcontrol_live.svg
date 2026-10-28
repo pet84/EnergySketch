@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="archcontrol_live-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="archcontrol_live-title">Propojení ASTRA LIVE</title>
+  <rect x="3" y="11" width="9" height="17" rx="1.5" fill="none" stroke="#252B33" stroke-width="2.25"/><rect x="20" y="4" width="9" height="17" rx="1.5" fill="none" stroke="#252B33" stroke-width="2.25"/><path d="M5 5H16" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M13 1 18 5 13 9Z" fill="#3288DF"/><path d="M27 27H17" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M20 23 15 27 20 31Z" fill="#3288DF"/>
+</svg>

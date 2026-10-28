@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="text-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="text-title">Text / popiska</title>
+  <!-- Shapes adapted from IngeTrazo; Copyright (C) 2026 Marco Sumari Tellez and IngeTrazo contributors; GPL-3.0-or-later. --><g transform="scale(0.6666666667)"><path d="M9 10H39V38H9Z" fill="none" stroke="#252B33" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 3" stroke-opacity=".58"/><path d="M16 17H32M24 17V32" fill="none" stroke="#252B33" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" /><circle cx="9" cy="38" r="3" fill="#3288DF"/></g>
+</svg>

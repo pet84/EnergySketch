@@ -27,19 +27,53 @@ def new_uid() -> str:
     return uuid.uuid4().hex[:16]
 
 
-def reserve_group_names(names) -> None:
-    """Move the automatic "Group N" counter past every N in ``names`` — a
-    document that comes back with its names must not hand a new group a
-    name it already uses."""
-    global _counter
+def _highest_group_number(names) -> int:
+    """The largest N among the automatic "Group N" entries in ``names``."""
     import re
     top = 0
     for n in names:
         m = re.match(r"^Group (\d+)$", n or "")
         if m:
             top = max(top, int(m.group(1)))
+    return top
+
+
+def reserve_group_names(names) -> None:
+    """Move the automatic "Group N" counter past every N in ``names`` — a
+    document that comes back with its names must not hand a new group a
+    name it already uses."""
+    global _counter
+    top = _highest_group_number(names)
     nxt = next(_counter)
     _counter = itertools.count(max(nxt, top + 1))
+
+
+import contextlib
+
+
+@contextlib.contextmanager
+def document_name_scope(names):
+    """Number auto-named groups from a document's own ``names`` while it
+    loads, not from the session's counter.
+
+    A file can carry groups with no name (everything saved before names
+    were written, some imports). Numbering those from the session counter
+    made the names a document saves back depend on whatever was opened
+    earlier in the session (issue #943). Inside the scope the counter
+    continues the document's own highest "Group N", in document order;
+    on exit the session counter moves past everything the document used,
+    so a group created by hand afterwards never reuses one of its
+    numbers either."""
+    global _counter
+    saved = _counter
+    local = itertools.count(_highest_group_number(names) + 1)
+    _counter = local
+    try:
+        yield
+    finally:
+        first_unused = next(local)
+        session_next = next(saved)
+        _counter = itertools.count(max(first_unused, session_next))
 
 
 class Group:
@@ -287,10 +321,42 @@ def make_billboard_group(image_path: str, height: float, name: str,
     return g
 
 
+def _implicit_uvw(face, tex, minv):
+    """The world→UV map a textured face WITHOUT a fitted ``uvw`` is
+    rendering with, recovered at its PRE-transform positions: the planar
+    projection (:func:`core.texture.face_uv_axes`) is anchored to the
+    face's normal, so once the geometry turns, the projection turns with
+    the NEW normal and the texture slides — while the live preview keeps
+    the UVs it generated before the turn. Materialising the projection
+    the face is showing now (positions run back through ``minv``, the
+    inverse of the transform about to be accounted for) pins that look
+    into a ``uvw`` the remap below can carry. ``None`` for a degenerate
+    face, whose projection is meaningless either way."""
+    from PySide6.QtGui import QVector3D
+
+    from core.texture import face_uv_axes
+    pts = [minv.map(p) for p in face.vertices]
+    if len(pts) < 3:
+        return None
+    normal = QVector3D()
+    for i in range(1, len(pts) - 1):
+        normal = QVector3D.crossProduct(pts[i] - pts[0], pts[i + 1] - pts[0])
+        if normal.length() > 1e-12:
+            break
+    if normal.length() <= 1e-12:
+        return None
+    gu, cu, gv, cv = face_uv_axes(tex, normal.normalized())
+    return [gu.x(), gu.y(), gu.z(), float(cu),
+            gv.x(), gv.y(), gv.z(), float(cv)]
+
+
 def _remap_uvws(mesh, m) -> None:
     """Rewrite each face's world→UV affine map (``uvw``) so that evaluating
     it at the TRANSFORMED positions reproduces the prototype's UVs:
-    g' = L⁻ᵀ·g, c' = c − g'·t."""
+    g' = L⁻ᵀ·g, c' = c − g'·t. A face still on the implicit planar
+    projection gets that projection materialised first (at its
+    pre-transform pose), so it turns WITH the geometry instead of being
+    re-projected onto the turned face."""
     minv, ok = m.inverted()
     if not ok:
         return
@@ -299,7 +365,9 @@ def _remap_uvws(mesh, m) -> None:
         t = f.attrs.get("texture") if f.attrs else None
         uvw = t.get("uvw") if t else None
         if not uvw or len(uvw) != 8:
-            continue
+            uvw = _implicit_uvw(f, t, minv) if t else None
+            if uvw is None:
+                continue
         new = list(uvw)
         for base in (0, 4):
             gx, gy, gz, c = uvw[base:base + 4]

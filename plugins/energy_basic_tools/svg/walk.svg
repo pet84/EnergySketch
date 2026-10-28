@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="walk-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="walk-title">Chůze</title>
+  <path d="M8 4Q12 1 14 5L16 13Q16 17 12 18L8 18Q5 18 5 15V8Q5 5 8 4ZM8 21H14V25Q11 29 8 25Z" fill="#252B33"/><path d="M24 12Q28 15 26 19L23 26Q21 29 18 27L16 25Q14 23 17 20L20 15Q21 12 24 12ZM15 28 19 31 16 32 13 30Z" fill="#3288DF"/>
+</svg>

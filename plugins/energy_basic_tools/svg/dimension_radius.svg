@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="dimension_radius-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="dimension_radius-title">Poloměrová kóta</title>
+  <!-- Shapes adapted from IngeTrazo; Copyright (C) 2026 Marco Sumari Tellez and IngeTrazo contributors; GPL-3.0-or-later. --><g transform="scale(0.6666666667)"><circle cx="21" cy="26" r="14" fill="none" stroke="#3288DF" stroke-width="3.2"/><path d="M21 26 27.511377766511313 20.536305317664418" fill="none" stroke="#252B33" stroke-width="2.2" stroke-linecap="butt" stroke-linejoin="round" /><path d="M31.724622203665692 17.00097346438845 29.670016947466088 24.664595143542307 23.82064969931858 17.693590711159608Z" fill="#252B33"/><circle cx="21" cy="26" r="2.6" fill="#252B33"/></g>
+</svg>

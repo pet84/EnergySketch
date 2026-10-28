@@ -174,3 +174,41 @@ def test_theme_choice_applies_at_once(settings_file):
     finally:
         theme.save_theme(before)
         theme.apply_theme(app, theme.DARK)
+
+
+def test_the_3d_mouse_page_shows_the_device_live(settings_file, monkeypatch):
+    """Nobody on the team has a SpaceMouse: the page shows the six numbers
+    as the device sends them and how IngeTrazo reads them, so an owner can
+    report a wrong sign by looking (#108)."""
+    from core.ndof import NdofSample
+    from views import ndof_input
+
+    dev = ndof_input.NdofInput()
+    monkeypatch.setattr(ndof_input, "_shared", dev)
+    monkeypatch.setattr(type(dev), "backend_name",
+                        property(lambda self: "rawinput"))
+    dlg = PreferencesDialog(_Win())
+    dev.raw.emit((12, -340, 0, 0, 0, 7))
+    dev.motion.emit(NdofSample(forward=0.97), 0.01)
+    assert "Y  -340" in dlg._ndof_raw.text()
+    assert "RZ    +7" in dlg._ndof_raw.text()
+    assert "+0.97" in dlg._ndof_read.text()
+    dlg.reject()
+    dev.raw.emit((0, 0, 0, 0, 0, 0))             # closed: no longer listens
+    assert "Y  -340" in dlg._ndof_raw.text()
+
+
+def test_the_tool_cursor_is_chosen_in_preferences(settings_file):
+    """#858: the crosshair or the plain arrow instead of the tool's icon is a
+    choice in Preferences ▸ General, saved where ``tool_cursor`` reads it and
+    applied to the active tool at once; the tool's icon stays the default."""
+    win = _Win()
+    applied = []
+    win.viewport._apply_tool_cursor = lambda: applied.append(True)
+    dlg = PreferencesDialog(win)
+    assert dlg._cursor_style.currentData() == "tool"
+    dlg._cursor_style.setCurrentIndex(dlg._cursor_style.findData("crosshair"))
+    dlg.accept()
+    assert _fresh(settings_file).value("General/cursor_style") == "crosshair"
+    assert applied == [True]
+    assert PreferencesDialog(win)._cursor_style.currentData() == "crosshair"

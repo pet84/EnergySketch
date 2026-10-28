@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="solid_subtract-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="solid_subtract-title">Odečtení těles</title>
+  <path d="M3 5H19V12H13V21H3Z" fill="none" stroke="#252B33" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M23 14H29V28H15V25" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 3"/><path d="M22 7H29" fill="none" stroke="#3288DF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

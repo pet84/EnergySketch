@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="tape-measure-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="tape-measure-title">Měřicí pásmo</title>
+  <path d="M14 6H23Q29 6 29 12V21Q29 25 25 25H14Q10 25 10 21V13Q10 9 14 6ZM20 10A5 5 0 1 0 20 20A5 5 0 1 0 20 10Z" fill="#252B33"/><path d="M11 22H3" fill="none" stroke="#3288DF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /><circle cx="20" cy="15" r="2.6" fill="#3288DF"/>
+</svg>

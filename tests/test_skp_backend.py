@@ -105,6 +105,37 @@ def test_empty_parse_falls_back_to_converter(tmp_path, monkeypatch):
         skp_format.parse_skp(p)
 
 
+def test_a_reader_error_is_logged_with_its_traceback(tmp_path, monkeypatch,
+                                                     caplog):
+    # #497, #157: the reader's own error was swallowed, so a failed import
+    # left nothing to diagnose. The user still gets NeedsConverter.
+    class FailingBackend:
+        name = "failing"
+
+        def available(self):
+            return True
+
+        def supports(self, fmt):
+            return fmt == "skp"
+
+        def parse(self, path, progress=None):
+            raise ValueError("implausible def entity count")
+
+    monkeypatch.setattr(skp_format, "_BACKENDS", [FailingBackend()])
+    p = tmp_path / "legacy.skp"
+    p.write_bytes(_skp_header_bytes())
+    with caplog.at_level("WARNING", logger="formats.skp"):
+        with pytest.raises(skp_format.NeedsConverter):
+            skp_format.parse_skp(p)
+    [record] = [r for r in caplog.records if r.name == "formats.skp"]
+    assert record.levelname == "WARNING"
+    assert "failing" in record.getMessage()
+    assert "legacy.skp" in record.getMessage()
+    assert record.exc_info[0] is ValueError
+    assert "implausible def entity count" in caplog.text
+    assert "Traceback" in caplog.text
+
+
 # ---- OpenSKP adapter (fake model) ---------------------------------------------
 
 def _V(x, y, z=0.0):
@@ -202,6 +233,36 @@ def test_openskp_adapter_places_instances_with_transform():
     from PySide6.QtGui import QVector3D
     placed = proto["instances"][0].map(QVector3D(0.0, 0.0, 0.0))
     assert placed.x() == pytest.approx(2.54, abs=1e-4)  # +100 in on X
+
+
+def test_openskp_adapter_divides_an_instance_matrix_by_its_w():
+    # Issue #865: SketchUp sometimes stores a placement scaled through the
+    # matrix's own scalar (element 12, the homogeneous w): the 3x3 AND the
+    # translation are stored multiplied by it, and the real transform
+    # divides them back out. Reading the stored values raw brought the
+    # reported component in 100x large and 100x away. This matrix is the
+    # w=1 placement of the test above (identity, +100 in on X) stored with
+    # w = 100, so it must land exactly where that one lands.
+    child = _fake_definition(
+        id=5, name="Child",
+        verts={1: (0, 0, 0), 2: (10, 0, 0), 3: (10, 10, 0)},
+        edges={10: (1, 2), 11: (2, 3), 12: (3, 1)},
+        faces={20: [[(10, 1), (11, 1), (12, 1)]]},
+    )
+    inst = NS(ref_idx=5, matrix=[100, 0, 0, 0, 100, 0, 0, 0, 100,
+                                 10000, 0, 0, 100])
+    root = _fake_definition(
+        id=0, name="ROOT_MODEL", verts={}, edges={}, faces={}, instances=[inst])
+    model = NS(definitions={0: root, 5: child})
+    payload = skp_openskp._adapt(model, "instw")
+    proto = payload["protos"][0]
+    assert len(proto["instances"]) == 1
+    from PySide6.QtGui import QVector3D
+    placed = proto["instances"][0]
+    origin = placed.map(QVector3D(0.0, 0.0, 0.0))
+    assert origin.x() == pytest.approx(2.54, abs=1e-4)   # +100 in, not +10000
+    corner = placed.map(QVector3D(0.254, 0.0, 0.0))       # 10 in along X
+    assert corner.x() == pytest.approx(2.54 + 0.254, abs=1e-4)
 
 
 def test_openskp_adapter_returns_none_without_geometry():
@@ -545,6 +606,52 @@ def test_openskp_adapter_image_entities_become_billboards(tmp_path):
     assert bb["imagen#2"] is False
 
 
+def test_a_cutout_image_stuck_on_a_face_stays_put(tmp_path):
+    # #429 (audioinnovation.skp): logos with transparency glued to a device
+    # turned to face the camera — the file has no face-me flag for images,
+    # the cutout guess did it. Lying on a face (here a face of ANOTHER
+    # component, as in that file, 0.5 mm off it) keeps one static; a cutout
+    # standing free — the plaza's bull — still turns.
+    from PySide6.QtGui import QImage
+
+    cutout = tmp_path / "logo.png"
+    img = QImage(4, 4, QImage.Format_RGBA8888)
+    img.fill(0x00000000)
+    img.save(str(cutout), "PNG")
+
+    def image_def(id, name):
+        d = _tri_def(id, name)
+        d.faces[20].material_id = 51
+        d.is_image = True
+        return d
+
+    panel = _fake_definition(
+        id=7, name="Equipo",
+        verts={1: (-10, -10, 0), 2: (30, -10, 0), 3: (30, 30, 0),
+               4: (-10, 30, 0)},
+        edges={10: (1, 2), 11: (2, 3), 12: (3, 4), 13: (4, 1)},
+        faces={20: [[(13, 1), (10, 1), (11, 1), (12, 1)]]})
+    ident = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+    root = _fake_definition(
+        id=0, name="ROOT_MODEL", verts={}, edges={}, faces={}, instances=[
+            NS(ref_idx=7, material_id=None, matrix=ident + [0, 0, -0.02, 1]),
+            NS(ref_idx=5, material_id=None, matrix=ident + [0, 0, 0, 1]),
+            NS(ref_idx=6, material_id=None, matrix=ident + [0, 0, 100, 1])])
+    mats = {51: NS(name="L", color=(1, 1, 1), transparency=1, id=51,
+                   texture=NS(filename="logo.png", width=48.0, height=48.0,
+                              data=cutout.read_bytes()))}
+    model = NS(definitions={0: root, 5: image_def(5, "logo"),
+                            6: image_def(6, "toro"), 7: panel},
+               materials_by_id=mats)
+    skp = tmp_path / "m.skp"
+    skp.write_bytes(b"")
+    payload = skp_openskp._adapt(model, "m", skp_path=skp)
+
+    by_name = {g["name"]: g for g in payload["groups"]}
+    assert by_name["logo"]["billboard"] is False        # glued -> static
+    assert by_name["toro"]["billboard"] is True         # free -> face-me
+
+
 def test_openskp_adapter_default_mapping_is_local(tmp_path):
     # The .skp format's default texture mapping runs in the component's LOCAL frame:
     # two copies of the same textured component must sample the same patch of
@@ -802,6 +909,44 @@ def test_openskp_adapter_face_layer_lands_in_attrs():
     assert attrs["layer"] == "Banderas"
 
 
+def test_a_faces_own_tag_arrives_by_name_not_by_its_id(tmp_path):
+    # #700 (@Aaron1992): openskp hands a face's tag as its id in the file,
+    # an instance's as its name. A roof tagged "Roof" landed on a layer
+    # called 11, so hiding "Roof" left the roof on screen. Written with
+    # openskp's own builder, so the ids are the real ones.
+    create = pytest.importorskip("openskp.create")
+    b = create.SkpBuilder()
+    roof = b.add_layer("Roof")
+    with b.add_component_definition("House") as house:
+        house.add_face([(0, 0, 0), (100, 0, 0), (100, 0, 100), (0, 0, 100)])
+        house.add_face([(0, 0, 100), (100, 0, 100), (100, 50, 100),
+                        (0, 50, 100)], layer=roof)
+    b.add_instance(house)
+    path = tmp_path / "roof.skp"
+    b.save(str(path))
+    scene = Scene()
+    skp_format.apply_payload(scene, skp_format.parse_skp(path))
+    layers = sorted(str(f.attrs.get("layer")) for g in scene.groups
+                    for f in g.mesh.faces)
+    assert layers == ["None", "Roof"]
+    assert "Roof" in [ly.name for ly in scene.layers]
+
+
+def test_resolve_face_layers_leaves_names_and_drops_the_default_tag():
+    from formats import openskp_compat
+    faces = {1: NS(layer=11), 2: NS(layer=1), 3: NS(layer="Muros"),
+             4: NS(layer=None), 5: NS(layer=99)}
+    openskp_compat._parse_tables.layers = {1: "Layer0", 11: "Roof"}
+    try:
+        n = openskp_compat.resolve_face_layers(
+            NS(definitions={0: NS(faces=faces)}))
+    finally:
+        openskp_compat._parse_tables.layers = {}
+    assert n == 3
+    assert [faces[i].layer for i in range(1, 6)] == \
+        ["Roof", "", "Muros", None, ""]
+
+
 def test_apply_payload_registers_layers_and_assigns_groups():
     from core.layers import Layer
     scene = Scene()
@@ -1030,3 +1175,72 @@ def test_openskp_adapter_flattens_a_tagged_subtree_placed_once():
         NS(definitions={0: root, 5: container, 7: leaf}), "obra")
     assert not any(p["name"] == "Jardinera" for p in payload.get("protos", []))
     assert any(g.get("layer") == "plantas" for g in payload["groups"])
+
+
+def _tagged_container_with_extracted_parts(monkeypatch, *, nested):
+    """A container tagged "Fachada" that places a component twice (shared as
+    a prototype), a face-me person and an image. All three are pulled out of
+    the container into objects of their own. ``nested``: the container sits
+    in an untagged group instead of at the top level."""
+    import formats.dae as dae_mod
+    monkeypatch.setattr(dae_mod, "_INST_MIN_POLYS", 1)
+    monkeypatch.setattr(dae_mod, "_INST_MIN_SAVED", 1)
+    eye = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]
+    post = _tri_def(7, "Poste")
+    person = _tri_def(8, "Susan")
+    person.always_faces_camera = True
+    picture = _tri_def(9, "Foto")
+    picture.is_image = True
+    container = _tri_def(5, "Muro", instances=[
+        NS(ref_idx=7, matrix=eye),
+        NS(ref_idx=7, matrix=[1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 0, 1]),
+        NS(ref_idx=8, matrix=eye),
+        NS(ref_idx=9, matrix=eye)])
+    defs = {5: container, 7: post, 8: person, 9: picture}
+    placed = NS(ref_idx=5, matrix=eye, layer="Fachada")
+    if nested:
+        defs[4] = _fake_definition(id=4, name="Edificio", verts={}, edges={},
+                                   faces={}, instances=[placed])
+        placed = NS(ref_idx=4, matrix=eye)
+    defs[0] = _fake_definition(id=0, name="ROOT_MODEL", verts={}, edges={},
+                               faces={}, instances=[placed])
+    return skp_openskp._adapt(NS(definitions=defs), "m")
+
+
+@pytest.mark.parametrize("nested", [False, True])
+def test_openskp_adapter_extracted_parts_keep_the_tag_of_their_group(
+        monkeypatch, nested):
+    # Hiding the "Fachada" tag must hide everything inside the tagged
+    # group. The face-me person, the image and the component copies are
+    # extracted into objects of their own, and they used to land on
+    # Layer 0: the tag rode on the container's group but never reached
+    # what was pulled out of it, so they stayed on screen.
+    payload = _tagged_container_with_extracted_parts(monkeypatch,
+                                                     nested=nested)
+    groups = {gp["name"]: gp for gp in payload["groups"]}
+    assert groups["Muro"]["layer"] == "Fachada"
+    assert groups["Susan"].get("layer") == "Fachada"
+    assert groups["Foto"].get("layer") == "Fachada"
+    (post,) = [p for p in payload["protos"] if p["name"] == "Poste"]
+    assert post["instance_layers"] == ["Fachada", "Fachada"]
+    # The container's own untagged face is NOT put on the tag: as in
+    # SketchUp, it stays untagged inside the tagged group.
+    assert not (groups["Muro"]["faces"][0][2] or {}).get("layer")
+
+
+def test_openskp_adapter_an_extracted_part_keeps_its_own_tag(monkeypatch):
+    import formats.dae as dae_mod
+    monkeypatch.setattr(dae_mod, "_INST_MIN_POLYS", 1)
+    monkeypatch.setattr(dae_mod, "_INST_MIN_SAVED", 1)
+    eye = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]
+    person = _tri_def(8, "Susan")
+    person.always_faces_camera = True
+    container = _tri_def(5, "Muro", instances=[
+        NS(ref_idx=8, matrix=eye, layer="Gente")])
+    root = _fake_definition(id=0, name="ROOT_MODEL", verts={}, edges={},
+                            faces={}, instances=[
+                                NS(ref_idx=5, matrix=eye, layer="Fachada")])
+    payload = skp_openskp._adapt(
+        NS(definitions={0: root, 5: container, 8: person}), "m")
+    groups = {gp["name"]: gp for gp in payload["groups"]}
+    assert groups["Susan"].get("layer") == "Gente"

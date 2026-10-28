@@ -134,11 +134,10 @@ def save_dae(scene, path, project_name: str = "IngeTrazo model") -> None:
     for key in keys:
         textured = key[0] == "tex"
         p_tokens: list[str] = []
-        for normal, verts in prims[key]:
-            ni = _ni(normal)
-            for pos, uv in verts:
+        for _flat, verts in prims[key]:
+            for pos, uv, normal in verts:
                 p_tokens.append(str(_pi(pos)))
-                p_tokens.append(str(ni))
+                p_tokens.append(str(_ni(normal)))   # smooth across soft edges
                 if textured:
                     p_tokens.append(str(_ui(uv)))
         tri_groups.append((key, textured, p_tokens))
@@ -657,6 +656,57 @@ def _collect_direct(dae: _Dae, node_el, m: QMatrix4x4, out: list) -> None:
                 out.append(([world[i] for i in lp], color, tex))
 
 
+def _prim_segments(prim_el, count: int) -> list:
+    """Index pairs of one ``lines`` / ``linestrips`` primitive."""
+    v_off, _uv, _src, stride = _prim_inputs(prim_el)
+    pairs: list = []
+    strips = ([prim_el.find(f"{_NS}p")] if _tag(prim_el) == "lines"
+              else prim_el.findall(f"{_NS}p"))
+    for p in strips:
+        idx = _ints(p.text if p is not None else "")
+        verts = [idx[k + v_off] for k in range(0, len(idx) - stride + 1,
+                                               stride)]
+        if _tag(prim_el) == "lines":
+            pairs.extend(zip(verts[0::2], verts[1::2]))
+        else:
+            pairs.extend(zip(verts, verts[1:]))
+    return [(a, b) for a, b in pairs
+            if a != b and 0 <= a < count and 0 <= b < count]
+
+
+def _collect_lines(dae: _Dae, node_el, xform: QMatrix4x4, out: list,
+                   depth: int = 0, nodes: bool = True) -> None:
+    """The loose lines (``lines`` / ``linestrips``) of a node tree, as
+    world ``(a, b)`` segments — a drawing's 2D lines, which the polygon
+    walk never read, so they were dropped on import (#633). With
+    ``nodes=False`` child ``<node>`` elements are left to the caller (they
+    import as groups of their own)."""
+    if depth > 32:
+        return
+    m = xform * _node_matrix(node_el)
+    for el in node_el:
+        t = _tag(el)
+        if t == "instance_geometry":
+            geom = dae.ref(el.get("url"))
+            mesh_el = geom.find(f"{_NS}mesh") if geom is not None else None
+            if mesh_el is None:
+                continue
+            prims = [pr for pr in mesh_el
+                     if _tag(pr) in ("lines", "linestrips")]
+            if not prims:
+                continue
+            world = [m.map(p) for p in _positions(dae, mesh_el)]
+            for pr in prims:
+                for a, b in _prim_segments(pr, len(world)):
+                    out.append((world[a], world[b]))
+        elif t == "node" and nodes:
+            _collect_lines(dae, el, m, out, depth)
+        elif t == "instance_node":
+            target = dae.ref(el.get("url"))
+            if target is not None:
+                _collect_lines(dae, target, m, out, depth + 1)
+
+
 def _image_has_cutout(dae: _Dae, path: str) -> bool:
     """Whether the image carries REAL transparency (some pixels see-through)
     — the signature of a photo sprite (a person/animal/tree cutout PNG),
@@ -725,13 +775,16 @@ def _looks_faceme(dae: _Dae, loops) -> bool:
 
 def _collect(dae: _Dae, node_el, xform: QMatrix4x4, out: list,
              depth: int = 0, faceme: list | None = None,
-             instances: list | None = None) -> None:
+             instances: list | None = None, nodes: bool = True) -> None:
     """Walk a node tree, baking transforms; instances recurse into
     ``library_nodes`` (components). With ``faceme`` given, a child
     component whose geometry is a face-me silhouette is pulled out into it
     as ``(name, loops)`` instead of flattening into the parent. With
     ``instances`` given, a reused component worth sharing is pulled out as
-    ``(name, target_node, pre_xform, depth)`` instead of baking a copy."""
+    ``(name, target_node, pre_xform, depth)`` instead of baking a copy.
+    With ``nodes=False`` child ``<node>`` elements are skipped — the caller
+    imports them as groups (:func:`_node_group`); what an instance pulls in
+    from ``library_nodes`` is still baked whole."""
     if depth > 32:
         return                                     # cyclic instance guard
     m = xform * _node_matrix(node_el)
@@ -741,6 +794,8 @@ def _collect(dae: _Dae, node_el, xform: QMatrix4x4, out: list,
         target = None
         d2 = depth
         if t == "node":
+            if not nodes:
+                continue
             target = el
         elif t == "instance_node":
             target = dae.ref(el.get("url"))
@@ -910,6 +965,304 @@ def _bucketize(dae: _Dae, top_nodes, faceme: list | None = None,
     return buckets
 
 
+# ---- Survey coordinates: move a far-out file near the origin -------------------
+#
+# The importer composes node transforms and maps vertices in single precision
+# (QMatrix4x4, QVector3D): a file at a UTM northing of 8,500,000 m has lost the
+# metre before the first face is made. So, before anything else reads the
+# document, this pass measures the scene in DOUBLE precision and — when it
+# reaches past formats.recenter.RECENTER_BEYOND_M — rewrites the document
+# itself so the offset is gone: the rest of the importer then reads a file
+# that simply sits near the origin.
+#
+# The offset is taken out where the large numbers first appear going down
+# the node tree: a node whose own translation is far out absorbs it (its
+# transform is rewritten as one double-precision <matrix>); otherwise it is
+# carried down, expressed in each node's frame, and finally subtracted from
+# the vertex positions of the geometry that holds it. A geometry or a library
+# node reached with two different shifts (one model placed twice) is copied
+# for the second, so no copy moves the other.
+
+_TRANSFORM_TAGS = ("matrix", "translate", "rotate", "scale", "lookat", "skew")
+
+
+def _node_matrix64(node_el):
+    """:func:`_node_matrix` in double precision (NumPy, row-major)."""
+    import math
+
+    import numpy as np
+    m = np.eye(4)
+    for el in node_el:
+        t = _tag(el)
+        if t == "matrix":
+            vals = _floats(el.text)
+            if len(vals) == 16:
+                m = m @ np.array(vals, dtype=np.float64).reshape(4, 4)
+        elif t == "translate":
+            v = _floats(el.text)
+            if len(v) >= 3:
+                tm = np.eye(4)
+                tm[:3, 3] = v[:3]
+                m = m @ tm
+        elif t == "rotate":
+            v = _floats(el.text)
+            if len(v) >= 4:
+                axis = np.array(v[:3], dtype=np.float64)
+                n = np.linalg.norm(axis)
+                if n > 0:
+                    x, y, z = axis / n
+                    a = math.radians(v[3])
+                    c, s = math.cos(a), math.sin(a)
+                    rm = np.eye(4)
+                    rm[:3, :3] = [
+                        [c + x * x * (1 - c), x * y * (1 - c) - z * s,
+                         x * z * (1 - c) + y * s],
+                        [y * x * (1 - c) + z * s, c + y * y * (1 - c),
+                         y * z * (1 - c) - x * s],
+                        [z * x * (1 - c) - y * s, z * y * (1 - c) + x * s,
+                         c + z * z * (1 - c)]]
+                    m = m @ rm
+        elif t == "scale":
+            v = _floats(el.text)
+            if len(v) >= 3:
+                m = m @ np.diag([v[0], v[1], v[2], 1.0])
+    return m
+
+
+def _zup3(dae: _Dae):
+    """:meth:`_Dae.to_zup` as a 3×3 double-precision matrix."""
+    import numpy as np
+    s = dae.scale
+    if dae.up == "Y_UP":
+        return np.array([[s, 0, 0], [0, 0, -s], [0, s, 0]], dtype=np.float64)
+    if dae.up == "X_UP":
+        return np.array([[0, s, 0], [s, 0, 0], [0, 0, s]], dtype=np.float64)
+    return np.eye(3) * s
+
+
+def _position_source(dae: _Dae, mesh_el):
+    """The ``<source>`` holding a mesh's POSITION array, or ``None``."""
+    verts = mesh_el.find(f"{_NS}vertices")
+    if verts is None:
+        return None
+    for inp in verts.findall(f"{_NS}input"):
+        if inp.get("semantic") == "POSITION":
+            return dae.ref(inp.get("source"))
+    return None
+
+
+def _local_points(dae: _Dae, geom_el):
+    """A geometry's vertex positions as an ``(n, 3)`` double array."""
+    import numpy as np
+    mesh_el = geom_el.find(f"{_NS}mesh")
+    src = _position_source(dae, mesh_el) if mesh_el is not None else None
+    if src is None:
+        return np.zeros((0, 3))
+    arr = src.find(f"{_NS}float_array")
+    data = _floats(arr.text if arr is not None else "")
+    stride = 3
+    acc = src.find(f"{_NS}technique_common/{_NS}accessor")
+    if acc is not None and acc.get("stride"):
+        stride = max(int(acc.get("stride")), 3)
+    n = len(data) // stride
+    if n == 0:
+        return np.zeros((0, 3))
+    return np.array(data[:n * stride], dtype=np.float64).reshape(n, stride)[:, :3]
+
+
+def _scene_box(dae: _Dae, top_nodes):
+    """The scene's box in Z-up metres, double precision: every geometry's
+    own box corners carried through its full chain of node transforms."""
+    import numpy as np
+
+    from formats.recenter import Bounds
+    box = Bounds()
+    zup = _zup3(dae)
+    corner_cache: dict = {}
+
+    def corners(geom_el):
+        got = corner_cache.get(id(geom_el))
+        if got is None:
+            pts = _local_points(dae, geom_el)
+            if len(pts):
+                lo, hi = pts.min(axis=0), pts.max(axis=0)
+                got = np.array([[x, y, z] for x in (lo[0], hi[0])
+                                for y in (lo[1], hi[1])
+                                for z in (lo[2], hi[2])])
+            else:
+                got = np.zeros((0, 3))
+            corner_cache[id(geom_el)] = got
+        return got
+
+    def walk(node_el, parent, depth):
+        if depth > 32:
+            return
+        m = parent @ _node_matrix64(node_el)
+        for el in node_el:
+            t = _tag(el)
+            if t == "instance_geometry":
+                geom = dae.ref(el.get("url"))
+                if geom is None:
+                    continue
+                c = corners(geom)
+                if len(c):
+                    world = c @ m[:3, :3].T + m[:3, 3]
+                    box.add_array(world @ zup.T)
+            elif t == "node":
+                walk(el, m, depth)
+            elif t == "instance_node":
+                target = dae.ref(el.get("url"))
+                if target is not None:
+                    walk(target, m, depth + 1)
+
+    for nd in top_nodes:
+        walk(nd, np.eye(4), 0)
+    return box
+
+
+def _fmt(values) -> str:
+    return " ".join(repr(float(v)) for v in values)
+
+
+def _clone(dae: _Dae, el, parent):
+    """A deep copy of ``el`` appended to ``parent``, every ``id`` inside it
+    renamed and every internal ``#reference`` to those ids rewired."""
+    import copy
+    dup = copy.deepcopy(el)
+    dae._clones = getattr(dae, "_clones", 0) + 1
+    suffix = f"-recentred{dae._clones}"
+    renamed = {}
+    for sub in dup.iter():
+        old = sub.get("id")
+        if old is not None:
+            renamed[old] = old + suffix
+            sub.set("id", old + suffix)
+    for sub in dup.iter():
+        for attr in ("source", "url", "target"):
+            ref = sub.get(attr)
+            if ref and ref.startswith("#") and ref[1:] in renamed:
+                sub.set(attr, "#" + renamed[ref[1:]])
+    parent.append(dup)
+    for sub in dup.iter():
+        if sub.get("id") is not None:
+            dae.by_id[sub.get("id")] = sub
+    return dup
+
+
+def _set_node_matrix(node_el, m) -> None:
+    """Replace a node's transform elements with one ``<matrix>``."""
+    for el in [el for el in node_el if _tag(el) in _TRANSFORM_TAGS]:
+        node_el.remove(el)
+    mat = ET.Element(f"{_NS}matrix")
+    mat.text = _fmt(m.reshape(-1))
+    at = 1 if len(node_el) and _tag(node_el[0]) == "asset" else 0
+    node_el.insert(at, mat)
+
+
+def _shift_geometry(dae: _Dae, geom_el, r) -> None:
+    """Subtract ``r`` (in the geometry's own frame) from its positions."""
+    import numpy as np
+    mesh_el = geom_el.find(f"{_NS}mesh")
+    src = _position_source(dae, mesh_el) if mesh_el is not None else None
+    arr = src.find(f"{_NS}float_array") if src is not None else None
+    if arr is None:
+        return
+    data = np.array(_floats(arr.text), dtype=np.float64)
+    stride = 3
+    acc = src.find(f"{_NS}technique_common/{_NS}accessor")
+    if acc is not None and acc.get("stride"):
+        stride = max(int(acc.get("stride")), 3)
+    n = len(data) // stride
+    view = data[:n * stride].reshape(n, stride)
+    view[:, :3] -= r
+    arr.text = _fmt(data)
+    dae._src_cache.pop(id(src), None)
+
+
+def _recenter_dom(root):
+    """Move a COLLADA document in survey coordinates near the origin, in
+    place and in double precision (see the notes above). Returns the
+    ``(x, y, z)`` offset in Z-up metres, or ``None`` when the file sits
+    near enough the origin to be read as it is."""
+    import numpy as np
+
+    from formats.recenter import RECENTER_BEYOND_M
+    dae = _Dae(root)
+    top_nodes: list = []
+    for vs in root.iter(f"{_NS}visual_scene"):
+        top_nodes.extend(vs.findall(f"{_NS}node"))
+    offset = _scene_box(dae, top_nodes).offset()
+    if offset is None:
+        return None
+    zup = _zup3(dae)
+    far = RECENTER_BEYOND_M / 2 / max(abs(dae.scale), 1e-12)
+    # What each shared element was shifted by: a second, different shift
+    # works on a copy.
+    shifted: dict = {}
+
+    def claim(el, r, parent):
+        key = id(el)
+        done = shifted.get(key)
+        if done is None:
+            shifted[key] = r
+            return el
+        if np.allclose(done, r, rtol=0.0, atol=1e-9):
+            return None                      # already shifted by this much
+        dup = _clone(dae, el, parent)
+        shifted[id(dup)] = r
+        return dup
+
+    def apply(node_el, r, depth):
+        """Take ``r`` (a vector in the node's PARENT frame) out of the
+        node's subtree."""
+        if depth > 32 or not np.any(r):
+            return
+        m = _node_matrix64(node_el)
+        t = m[:3, 3]
+        if np.max(np.abs(t)) > far:
+            m[:3, 3] = t - r                 # the node itself is far out
+            _set_node_matrix(node_el, m)
+            return
+        try:
+            r_local = np.linalg.solve(m[:3, :3], r)
+        except np.linalg.LinAlgError:
+            return
+        for el in node_el:
+            tag = _tag(el)
+            if tag == "instance_geometry":
+                geom = dae.ref(el.get("url"))
+                if geom is None:
+                    continue
+                own = claim(geom, r_local, _parent_of(geom))
+                if own is None:
+                    continue
+                if own is not geom:
+                    el.set("url", "#" + own.get("id"))
+                _shift_geometry(dae, own, r_local)
+            elif tag == "node":
+                apply(el, r_local, depth)
+            elif tag == "instance_node":
+                target = dae.ref(el.get("url"))
+                if target is None:
+                    continue
+                own = claim(target, r_local, _parent_of(target))
+                if own is None:
+                    continue
+                if own is not target:
+                    el.set("url", "#" + own.get("id"))
+                apply(own, r_local, depth + 1)   # a library node: same rules
+
+    parents = {id(c): p for p in root.iter() for c in p}
+
+    def _parent_of(el):
+        return parents.get(id(el), root)
+
+    off_dae = np.linalg.solve(zup, np.array(offset, dtype=np.float64))
+    for nd in top_nodes:
+        apply(nd, off_dae, 0)
+    return offset
+
+
 def _adopt_geolocation(scene, root) -> None:
     """If the COLLADA carries ``<asset><coverage><geographic_location>`` and the
     scene has no datum yet, anchor the scene there — so a georeferenced model
@@ -938,21 +1291,112 @@ def _adopt_geolocation(scene, root) -> None:
     scene.georef = SceneDatum(lat, lon, alt)
 
 
-def load_dae(scene, path, progress=None) -> None:
+def _add_lines(mesh, dae: _Dae, lines: list) -> None:
+    """Add the file's loose lines to ``mesh`` (Z-up). Only the small,
+    editable import takes them: in the reference import (big files) an
+    exporter that writes every edge as a line would double the model."""
+    for a, b in lines:
+        a, b = dae.to_zup(a), dae.to_zup(b)
+        if (a - b).length() < 1e-6:
+            continue
+        try:
+            mesh.add_edge(a, b)
+        except Exception:  # noqa: BLE001 — skip a degenerate line
+            continue
+
+
+def _add_editable(mesh, dae: _Dae, loops: list, lines: list) -> None:
+    """Add ``loops`` and ``lines`` to ``mesh`` through the full editable
+    pipeline: fuse the exported triangles back into clean polygons and give a
+    closed result a consistent outward orientation — same pipeline as OBJ
+    import. Loose lines go in after the faces: one lying on a face edge is
+    that edge (add_edge finds it), the rest stay as the drawing's own lines."""
+    from core.history import run_stitch
+    from core.orient import orient_outward
+    from core.topology import _key
+    seed: set = set()
+    new_faces = set()
+    for loop, color, tex in loops:
+        pts = [dae.to_zup(p) for p in loop]
+        try:
+            face = mesh.add_face(pts)
+        except Exception:  # noqa: BLE001 — skip a degenerate polygon
+            continue
+        new_faces.add(face)
+        attrs = _face_attrs(pts, color, tex)
+        if attrs:
+            face.attrs.update(attrs)
+        for p in pts:
+            seed.add(_key(p))
+    if loops:
+        run_stitch(mesh, seed, new_faces, coplanar_merge=True)
+        orient_outward(mesh)
+    _add_lines(mesh, dae, lines)
+
+
+def _node_group(dae: _Dae, node_el, xform: QMatrix4x4, faceme: list,
+                depth: int = 0):
+    """The Group a nested ``<node>`` (a modeller's group) imports as, or
+    ``None`` when its subtree holds nothing to draw (a camera, a light).
+
+    The file's tree is kept: the node's own geometry — and whatever its
+    ``instance_node`` elements pull in — is the group's mesh, and every
+    child ``<node>`` becomes a nested child group, so a model exported as
+    groups of groups comes back as groups of groups with the same names
+    instead of melting into the loose mesh. Meshes are baked to world
+    coordinates, as the OBJ importer's parts are; the node's transform is
+    kept as the group's own axes (issue #44), so a turned group still faces
+    its way. ``xform`` is the composed matrix of the node's parent."""
+    from core.group import Group
+    from core.mesh import Mesh
+    if depth > 32:
+        return None                                # malformed-file guard
+    m = xform * _node_matrix(node_el)
+    name = _node_label(node_el)
+    loops: list = []
+    lines: list = []
+    _collect(dae, node_el, xform, loops, faceme=faceme, nodes=False)
+    _collect_lines(dae, node_el, xform, lines, nodes=False)
+    if loops and _looks_faceme(dae, loops):
+        faceme.append((name, loops))               # the group IS a sprite
+        loops = []
+    kids = [g for g in (_node_group(dae, el, m, faceme, depth + 1)
+                        for el in node_el if _tag(el) == "node")
+            if g is not None]
+    mesh = Mesh()
+    _add_editable(mesh, dae, loops, lines)
+    if not mesh.faces and not mesh.edges and not kids:
+        return None
+    g = Group(mesh, name=name)
+    frame = dae.zup_matrix() * m * dae.zup_matrix().inverted()[0]
+    if not frame.isIdentity():
+        g.axes = frame
+    for kid in kids:
+        # World-baked, so the placement is identity; a group inside the
+        # group, not a component of its own (issue #90).
+        kid.xform = QMatrix4x4()
+        kid.component = False
+    g.adopt(kids)
+    g.component = False
+    return g
+
+
+def load_dae(scene, path, progress=None):
     """See :func:`_load_dae_inner`. Wrapped to run with the generational GC off —
     mass vertex/edge/face construction ahead (see formats.skp.apply_payload);
-    collection is merely deferred to the re-enable."""
+    collection is merely deferred to the re-enable. Returns the survey offset
+    the file was moved by (formats/recenter.py), or ``None``."""
     import gc
     _gc_was_enabled = gc.isenabled()
     gc.disable()
     try:
-        _load_dae_inner(scene, path, progress=progress)
+        return _load_dae_inner(scene, path, progress=progress)
     finally:
         if _gc_was_enabled:
             gc.enable()
 
 
-def _load_dae_inner(scene, path, progress=None) -> None:
+def _load_dae_inner(scene, path, progress=None):
     """Add the geometry of a COLLADA file at ``path`` to ``scene``.
 
     Small models (≤ ``_MAX_FUSE_LOOPS`` polygons) go into the loose mesh and
@@ -965,9 +1409,6 @@ def _load_dae_inner(scene, path, progress=None) -> None:
 
     ``progress``, when given, is called as ``progress(fraction, text)`` at
     milestones so the UI can show an import progress bar."""
-    from core.history import run_stitch
-    from core.orient import orient_outward
-    from core.topology import _key
 
     def tick(frac, text):
         if progress is not None:
@@ -975,6 +1416,9 @@ def _load_dae_inner(scene, path, progress=None) -> None:
 
     tick(0.02, "Reading file…")
     root = ET.parse(Path(path)).getroot()
+    # Survey coordinates come out of the document first, in double
+    # precision, before anything below turns them single precision.
+    offset = _recenter_dom(root)
     dae = _Dae(root, base_dir=Path(path).parent)
     _adopt_geolocation(scene, root)
     top_nodes: list = []
@@ -1067,17 +1511,31 @@ def _load_dae_inner(scene, path, progress=None) -> None:
             done += len(loops)
         scene.version += 1
         tick(1.0, "Done")
-        return
+        return offset
 
+    # A top-level node is the model itself (SketchUp's "SketchUp" root, a
+    # bare exporter's only node): its own geometry is the loose mesh. The
+    # nodes nested in it are the model's groups and import as Groups,
+    # nested as the file nests them (_node_group).
     pending: list = []
     faceme: list = []
+    lines: list = []
+    groups: list = []
     for node in top_nodes:
+        _collect_lines(dae, node, QMatrix4x4(), lines, nodes=False)
         sub: list = []
-        _collect(dae, node, QMatrix4x4(), sub, faceme=faceme)
+        _collect(dae, node, QMatrix4x4(), sub, faceme=faceme, nodes=False)
         if sub and _looks_faceme(dae, sub):
             faceme.append((_node_label(node), sub))   # top node IS a sprite
         else:
             pending.extend(sub)
+        m = _node_matrix(node)
+        for el in node:
+            if _tag(el) == "node":
+                g = _node_group(dae, el, m, faceme)
+                if g is not None:
+                    groups.append(g)
+    scene.groups.extend(groups)
     if faceme:
         # Face-me sprites become billboard groups even in a small import.
         from core.group import Group
@@ -1096,7 +1554,7 @@ def _load_dae_inner(scene, path, progress=None) -> None:
                 g = Group(target, name=name)
                 g.billboard = "mesh"
                 scene.groups.append(g)
-    if not pending and not faceme:
+    if not pending and not faceme and not groups:
         # No visual scene (bare geometry library): import it un-instanced.
         for geom in root.iter(f"{_NS}geometry"):
             mesh_el = geom.find(f"{_NS}mesh")
@@ -1109,10 +1567,11 @@ def _load_dae_inner(scene, path, progress=None) -> None:
                         pending.append(([positions[i] for i in lp],
                                         None, None))
     if not pending:
-        if faceme:
+        if faceme or lines or groups:
+            _add_lines(scene.mesh, dae, lines)
             scene.version += 1
             tick(1.0, "Done")
-            return
+            return offset
         raise ValueError("No geometry found in the COLLADA file")
 
     if len(pending) > _MAX_FUSE_LOOPS:
@@ -1139,27 +1598,10 @@ def _load_dae_inner(scene, path, progress=None) -> None:
         scene.groups.append(Group(target, name=Path(path).stem))
         scene.version += 1
         tick(1.0, "Done")
-        return
+        return offset
 
-    target = scene.mesh
-    seed: set = set()
-    new_faces = set()
-    for loop, color, tex in pending:
-        pts = [dae.to_zup(p) for p in loop]
-        try:
-            face = target.add_face(pts)
-        except Exception:  # noqa: BLE001 — skip a degenerate polygon
-            continue
-        new_faces.add(face)
-        attrs = _face_attrs(pts, color, tex)
-        if attrs:
-            face.attrs.update(attrs)
-        for p in pts:
-            seed.add(_key(p))
-
-    # Fuse the exported triangles back into clean polygons and give a closed
-    # result a consistent outward orientation — same pipeline as OBJ import.
-    # (Big models took the reference-group path above with the fast fusion.)
-    run_stitch(scene.mesh, seed, new_faces, coplanar_merge=True)
-    orient_outward(scene.mesh)
+    # The full editable pipeline (big models took the reference-group path
+    # above with the fast fusion).
+    _add_editable(scene.mesh, dae, pending, lines)
     scene.version += 1
+    return offset

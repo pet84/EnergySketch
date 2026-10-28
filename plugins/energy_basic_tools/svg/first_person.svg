@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="first_person-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="first_person-title">Pohled první osoby</title>
+  <circle cx="16" cy="9" r="5" fill="none" stroke="#252B33" stroke-width="2.25"/><path d="M6 28V24Q6 18 16 18Q26 18 26 24V28" fill="none" stroke="#252B33" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /><path d="M3 7V3H8M24 3H29V7M3 25V29H8M24 29H29V25" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

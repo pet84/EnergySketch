@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="save-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="save-title">Uložit</title>
+  <path d="M5 4H24L28 8V28H5ZM10 4V13H22V4M10 28V19H23V28" fill="none" stroke="#252B33" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" /><path d="M16 5H20V11H16Z" fill="#3288DF"/><path d="M14 23H19" fill="none" stroke="#3288DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="look_around-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="look_around-title">Rozhlížení</title>
+  <path d="M2 16Q16 -1 30 16Q16 33 2 16Z" fill="none" stroke="#252B33" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /><circle cx="16" cy="16" r="5" fill="none" stroke="#3288DF" stroke-width="2.6"/><circle cx="16" cy="16" r="2.2" fill="#3288DF"/>
+</svg>

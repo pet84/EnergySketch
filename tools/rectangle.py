@@ -57,6 +57,11 @@ class RectangleTool(PlaneLock, Tool):
     name = "Rectangle"
     shortcut = "R"
     description = "Draw a rectangle from two opposite corners."
+    axis_source = True
+    axis_source_empty_only = True
+    # The second click is the opposite corner: the span to the cursor is the
+    # diagonal, never a line to infer along (#389, see ``compute_snap``).
+    diagonal_span = True
     vcb_label = "Dimensions"
     # Only a width AND a height mean something here, so "200,100" is two
     # values (the list comma, #152), not the decimal 200.1.
@@ -301,12 +306,16 @@ class RectangleTool(PlaneLock, Tool):
             return []
         point, normal = self.preview_plane(vp, self.hover_point)
         u, v = _plane_axes(normal)
-        scale = self.world_per_pixel(vp, self.hover_point, u)
+        scale = self.plane_preview_scale(vp, self.hover_point, u, v)
         if scale is None:
             return []
         h = 0.5 * self.PREVIEW_PX * scale
         c = self.hover_point
-        pts = [c + u * h + v * h, c - u * h + v * h, c - u * h - v * h, c + u * h - v * h]
+        if self._from_center:
+            pts = [c + u * h + v * h, c - u * h + v * h,
+                   c - u * h - v * h, c + u * h - v * h]
+        else:
+            pts = [c, c + u * (2*h), c + (u+v) * (2*h), c + v * (2*h)]
         return [(pts[i], pts[(i + 1) % 4]) for i in range(4)]
 
     def plane_points(self):

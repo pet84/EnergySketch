@@ -35,4 +35,4 @@ jobs:
         shell: pwsh
         run: |
           $testFiles = Get-ChildItem tests/test_archcontrol*.py | ForEach-Object { $_.FullName }
-          python -m pytest -q @testFiles
+          python -m pytest -q @testFiles tests/test_archenergy_layout.py tests/test_energy_basic_tools.py tests/test_restore_default_toolbars.py

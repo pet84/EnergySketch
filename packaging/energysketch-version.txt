@@ -12,6 +12,6 @@ VSVersionInfo(
     StringStruct('LegalCopyright', '© Marco Sumari Tellez a přispěvatelé IngeTrazo; úpravy © 2026 ArchEnergy s.r.o.; GPL-3.0-or-later'),
     StringStruct('OriginalFilename', 'EnergySketch.exe'),
     StringStruct('ProductName', 'EnergySketch · ArchEnergy s.r.o.'),
-    StringStruct('ProductVersion', '0.1 interní; základ IngeTrazo 0.5.8')
+    StringStruct('ProductVersion', '0.1 interní; základ IngeTrazo 0.5.11')
   ])]), VarFileInfo([VarStruct('Translation', [1033, 1200])])]
 )

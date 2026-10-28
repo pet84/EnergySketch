@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="section_planes-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="section_planes-title">Zobrazit řezové roviny</title>
+  <path d="M4 6H27V27H4Z" fill="none" stroke="#252B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M15 3V30" fill="none" stroke="#3288DF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /><path d="M19 12 27 16 19 20Z" fill="#3288DF"/>
+</svg>

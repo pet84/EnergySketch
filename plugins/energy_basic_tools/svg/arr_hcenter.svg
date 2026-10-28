@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="arr_hcenter-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="arr_hcenter-title">Zarovnat na střed vodorovně</title>
+  <path d="M16 3V29" fill="none" stroke="#3288DF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" /><rect x="5" y="7" width="22" height="6" rx="0" fill="none" stroke="#252B33" stroke-width="2.25"/><rect x="10" y="20" width="12" height="6" rx="0" fill="none" stroke="#252B33" stroke-width="2.25"/>
+</svg>

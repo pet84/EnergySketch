@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="comp_vista-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="comp_vista-title">Vložit pohled modelu</title>
+  <rect x="3" y="4" width="26" height="24" rx="0" fill="none" stroke="#252B33" stroke-width="2.25"/><path d="M9 13 16 9 23 13V21L16 25 9 21ZM9 13 16 17 23 13M16 17V25" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

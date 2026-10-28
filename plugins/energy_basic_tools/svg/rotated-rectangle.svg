@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="rotated-rectangle-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="rotated-rectangle-title">Otočený obdélník</title>
+  <path d="M3.5 13.5 21.5 4.5 28.5 18.5 10.5 27.5Z" fill="none" stroke="#252B33" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" /><path d="M10.5 27.5 21.5 4.5" fill="none" stroke="#3288DF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><circle cx="10.5" cy="27.5" r="2.5" fill="#3288DF"/><circle cx="21.5" cy="4.5" r="2.5" fill="#3288DF"/>
+</svg>

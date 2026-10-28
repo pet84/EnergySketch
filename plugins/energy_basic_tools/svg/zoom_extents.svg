@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none" role="img" aria-labelledby="zoom_extents-title">
+  <!-- SPDX-License-Identifier: GPL-3.0-or-later; © 2026 ArchEnergy s.r.o. -->
+  <title id="zoom_extents-title">Zobrazit vše</title>
+  <path d="M3 11V3H11M21 3H29V11M3 21V29H11M21 29H29V21" fill="none" stroke="#3288DF" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" /><path d="M10 22 22 10M10 10 22 22" fill="none" stroke="#252B33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M8 8H14L8 14ZM24 8V14L18 8ZM8 24V18L14 24ZM24 24H18L24 18Z" fill="#252B33"/>
+</svg>

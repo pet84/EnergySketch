@@ -5,10 +5,9 @@ EnergySketch je odvozená upravená verze IngeTrazo.
 
 - Původní projekt: https://github.com/ingelibre/ingetrazo
 - Původní autor: Marco Sumari Tellez a přispěvatelé uvedení v AUTHORS.
-- Základ tohoto snímku: veřejný upstream commit `a94a2f7ed7481d08eb113874884aaa4e200f49ce`.
-- Interní zdrojový commit před veřejným exportem: `6c2a936256202a66df45c09174dcee44c2ed118e`.
+- Základ tohoto snímku: IngeTrazo **v0.5.11**, commit `a369d1ed` (28. 10. 2026).
 - Úpravy a integrace ArchControlu: © 2026 ArchEnergy s.r.o.
-- Veřejný export a přenositelné návody: 19. 10. 2026.
+- První veřejný snímek: 19. 10. 2026; aktualizace: 28. 10. 2026.
 
 Veřejná historie začíná čistým snímkem aktuálních zdrojů. Interní historie obsahuje
 také zákaznické podklady a měření; nepřenáší se do veřejného repozitáře.
